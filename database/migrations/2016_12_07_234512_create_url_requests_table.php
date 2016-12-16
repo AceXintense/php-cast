@@ -17,6 +17,7 @@ class CreateURLRequestsTable extends Migration
             $table->increments('id');
             $table->string('url');
             $table->string('status');
+            $table->string('fileName')->nullable('fileName');
             $table->timestamps();
         });
     }

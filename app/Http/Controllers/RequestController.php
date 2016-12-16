@@ -16,6 +16,22 @@ class RequestController extends BaseController
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
     /**
+     * Get the playing song.
+     * @return array
+     */
+    public function getPlaying() {
+        return URLRequest::all()->where('status', 'Playing')->toArray();
+    }
+
+    /**
+     *  Get all the Requested URLs in the database.
+     *  @return array
+     */
+    public function getRequestedURLs() {
+        return URLRequest::all()->toArray();
+    }
+
+    /**
      * Add Request to the Database.
      *
      * @param Request $request
@@ -26,25 +42,67 @@ class RequestController extends BaseController
         $requestedURL = $request->get('requestedURL');
 
         if (!$utils->validURL($requestedURL)) {
-            return 'The requested URL is not a URL please try again.';
+            return [
+                'type' => 'Error',
+                'content' => 'The requested URL is not a URL please try again.'
+            ];
         }
 
         /** @var URLRequest $existingRecord */
         $existingRecord = URLRequest::all()->where('status', 'Requested')->where('url', $requestedURL);
         if (count($existingRecord)) {
-            return "$requestedURL is all ready in the queue.";
+            return [
+                'type' => 'Error',
+                'content' => "$requestedURL is all ready in the queue."
+            ];
         }
         try {
-            /** @var URLRequest $record */
-            $record = new URLRequest();
-            $record->url = $requestedURL;
-            $record->status = 'Requested';
-            $record->save();
+            $this->downloadFile($requestedURL);
         } catch (\Exception $e) {
-            return $e;
+            return [
+                'type' => 'Error',
+                'content' => $e
+            ];
         }
 
-        return "Successfully added $requestedURL to the queue.";
+        return [
+            'type' => 'Success',
+            'content' => "Successfully added $requestedURL to the queue."
+        ];
+    }
+
+    /**
+     * Download the file from the URL and then add the fileName to the database.
+     * @param $url string
+     */
+    private function downloadFile($url) {
+        /** @var URLRequest $record */
+        $record = new URLRequest();
+        $record->url = $url;
+        $record->status = 'Requested';
+
+        exec('cd /Stream; sudo scdl -l ' . $url);
+        $getSongName = exec('cd /Stream && ls -t1 |  head -n 1');
+
+        $record->fileName = $getSongName;
+        $record->save();
+    }
+
+    /**
+     * Plays the file with the Filename it also updates the database with the status.
+     * @param Request $request
+     * @return string
+     */
+    public function playFile(Request $request) {
+
+        $fileName = $request->get('fileName');
+        /** @var URLRequest $record */
+        $record = URLRequest::all()->where('fileName',$fileName);
+        $output = exec("sudo mplayer /Stream/\"$fileName\"");
+        $record->status = 'Playing';
+        $record->save();
+
+        return "<pre>$output</pre>";
 
     }
 
@@ -83,16 +141,6 @@ class RequestController extends BaseController
      * @return string
      */
     public function updateRequest(Request $request) {
-        return 'API Hit';
-    }
-
-    /**
-     * Get the URL that is currently playing.
-     *
-     * @param Request $request
-     * @return string
-     */
-    public function getPlaying(Request $request) {
         return 'API Hit';
     }
 }
