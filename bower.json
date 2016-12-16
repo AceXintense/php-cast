@@ -1,0 +1,20 @@
+{
+  "name": "PHPCast",
+  "description": "",
+  "main": "",
+  "authors": [
+    "Sam Grew <shanker1210@hotmail.co.uk>"
+  ],
+  "license": "MIT",
+  "homepage": "",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "devDependencies": {
+    "jquery": "^3.1.1"
+  }
+}
