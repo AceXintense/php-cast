@@ -107,11 +107,15 @@ class RequestController extends BaseController
         $fileName = $request->get('fileName');
         /** @var URLRequest $record */
         $record = URLRequest::where('fileName', $fileName)->first();
-        $record->status = 'Playing';
-        $record->save();
+        if ($record) {
+            $record->status = 'Playing';
+            $record->save();
+        }
         $output = exec("sudo mplayer /Stream/\"$fileName\"");
-        $record->status = 'Played';
-        $record->save();
+        if ($record) {
+            $record->status = 'Played';
+            $record->save();
+        }
 
         return "<pre>$output</pre>";
 
