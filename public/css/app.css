@@ -44,12 +44,16 @@ h1 {
 
 .control .playback {
   padding: 5px 0; }
+  .control .playback #clear-queue {
+    float: right; }
 .control .queue {
   border: 1px solid #ccc;
   border-radius: 10px;
   overflow: hidden;
   overflow-y: auto;
   max-height: 250px; }
+  .control .queue:empty {
+    border: 0; }
   .control .queue .record {
     border-top: 1px solid transparent;
     border-bottom: 1px solid transparent;

@@ -19,4 +19,6 @@ Route::get('/removeRequest', 'RequestController@removeRequest');
 
 Route::get('/playFile', 'RequestController@playFile');
 
+Route::get('/clearQueue', 'RequestController@clearQueue');
+
 Route::post('/addRequest', 'RequestController@addRequest');

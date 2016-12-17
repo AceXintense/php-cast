@@ -111,7 +111,7 @@ class RequestController extends BaseController
             $record->status = 'Playing';
             $record->save();
         }
-        $output = exec("sudo mplayer /Stream/\"$fileName\"");
+        $output = shell_exec("sudo mplayer /Stream/\"$fileName\"");
         if ($record) {
             $record->status = 'Played';
             $record->save();
@@ -119,6 +119,25 @@ class RequestController extends BaseController
 
         return "<pre>$output</pre>";
 
+    }
+
+    /**
+     * This function clears the url_requests table of all the requests it also removes the files linked to the records.
+     */
+    public function clearQueue() {
+        if (count(URLRequest::all()) > 0) {
+            URLRequest::truncate();
+            shell_exec('sudo rm -R /Stream && sudo mkdir /Stream');
+            return [
+                'type' => 'Success',
+                'content' => 'Cleared the queue successfully.'
+            ];
+        } else {
+            return [
+                'type' => 'Warning',
+                'content' => 'There is nothing in the queue to clear.'
+            ];
+        }
     }
 
     /**

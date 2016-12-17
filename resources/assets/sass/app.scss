@@ -56,8 +56,15 @@ h1{
 .control {
   .playback {
     padding: 5px 0;
+    #clear-queue {
+      float: right;
+    }
   }
+
   .queue {
+    &:empty{
+      border: 0;
+    }
     border: 1px solid #ccc;
     border-radius: 10px;
     overflow: hidden;

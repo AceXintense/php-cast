@@ -21,9 +21,9 @@ var refresh = function () {
         url: "/api/getRequestedURLs",
         type: "GET",
         success: function(data) {
-            $(".record-container").empty();
+            $(".queue").empty();
             $.each(data, function(i, item){
-                $(".record-container").append(
+                $(".queue").append(
                     '<div class="record row ' + item.status + '">' +
                         '<p class="col-xs-9 col-xs-offset-1">' + item.fileName + '</p>' +
                         '<button class="btn btn-default col-xs-2" id="play-song"><i class="fa fa-play" aria-hidden="true"></i></button>' +
@@ -41,6 +41,16 @@ $('body').on("click", "#play-song",function (){
         data: {
             fileName: fileName
         },
+        type: "GET",
+        success: function(data) {
+            messageUpdate(data);
+        }
+    });
+});
+
+$('#clear-queue').click(function () {
+    $.ajax({
+        url: "/api/clearQueue",
         type: "GET",
         success: function(data) {
             messageUpdate(data);
@@ -77,6 +87,10 @@ $('#request-add').click(function (){
     });
 });
 
+/**
+ * Gives back the output from the API in a message on the front-end.
+ * @param data
+ */
 function messageUpdate(data) {
     $messageContainer.show();
     $messageType.text(data['type']);

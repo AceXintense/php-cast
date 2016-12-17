@@ -40,12 +40,12 @@ Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos
 				<button class="btn btn-default"><i class="fa fa-backward" aria-hidden="true"></i></button>
 				<button class="btn btn-default"><i class="fa fa-play" aria-hidden="true"></i></button>
 				<button class="btn btn-default"><i class="fa fa-forward" aria-hidden="true"></i></button>
+				<button class="btn btn-default" id="clear-queue">Clear Queue</button>
 			</div>
 
-			<div class="queue">
-				<div class="record-container">
 
-				</div>
+			<div class="queue">
+
 			</div>
 		</div>
 	</div>
