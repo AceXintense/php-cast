@@ -24,9 +24,9 @@ var refresh = function () {
             $(".record-container").empty();
             $.each(data, function(i, item){
                 $(".record-container").append(
-                    '<div class="record">' +
-                        '<p>' + item.fileName + '</p>' +
-                        '<button class="btn btn-default" id="play-song"><i class="fa fa-play" aria-hidden="true"></i></button>' +
+                    '<div class="record row ' + item.status + '">' +
+                        '<p class="col-xs-9 col-xs-offset-1">' + item.fileName + '</p>' +
+                        '<button class="btn btn-default col-xs-2" id="play-song"><i class="fa fa-play" aria-hidden="true"></i></button>' +
                     '</div>'
                 );
             });
@@ -43,7 +43,7 @@ $('body').on("click", "#play-song",function (){
         },
         type: "GET",
         success: function(data) {
-            console.log('Playing!');
+            messageUpdate(data);
         }
     });
 });
@@ -72,14 +72,18 @@ $('#request-add').click(function (){
             requestedURL: $('#request-url').val()
         },
         success: function(data) {
-            $messageContainer.show();
-            $messageType.text(data['type']);
-            $messageContent.text(data['content']);
-            refresh();
+            messageUpdate(data);
         }
     });
 });
 
+function messageUpdate(data) {
+    $messageContainer.show();
+    $messageType.text(data['type']);
+    $messageContent.text(data['content']);
+    refresh();
+}
+
 refresh();
 
-setInterval(refresh, 60 * 50);
+setInterval(refresh, 60 * 40);

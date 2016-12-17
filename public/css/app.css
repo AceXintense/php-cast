@@ -22,6 +22,12 @@ h1 {
   color: #323232;
   margin-top: 10px; }
 
+.Playing {
+  background-color: #4CAF50;
+  color: white; }
+  .Playing:hover {
+    background-color: #499b4d !important; }
+
 .message {
   display: none;
   background-color: white;
@@ -48,7 +54,7 @@ h1 {
     border-top: 1px solid transparent;
     border-bottom: 1px solid transparent;
     text-align: center;
-    padding: 5px 0; }
+    padding: 5px; }
     .control .queue .record p {
       margin: 0; }
     .control .queue .record:not(:first-child):not(:last-child):hover {

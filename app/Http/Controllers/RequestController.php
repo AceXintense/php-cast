@@ -95,11 +95,22 @@ class RequestController extends BaseController
      */
     public function playFile(Request $request) {
 
+        /** @var URLRequest $alreadyPlaying */
+        $alreadyPlaying = URLRequest::where('status', 'Playing')->first();
+        if ($alreadyPlaying) {
+            return [
+                'type' => 'Error',
+                'content' => $alreadyPlaying->fileName . " is playing please wait until the file is finished."
+            ];
+        }
+
         $fileName = $request->get('fileName');
         /** @var URLRequest $record */
-        $record = URLRequest::all()->where('fileName',$fileName);
-        $output = exec("sudo mplayer /Stream/\"$fileName\"");
+        $record = URLRequest::where('fileName', $fileName)->first();
         $record->status = 'Playing';
+        $record->save();
+        $output = exec("sudo mplayer /Stream/\"$fileName\"");
+        $record->status = 'Played';
         $record->save();
 
         return "<pre>$output</pre>";
