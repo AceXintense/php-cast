@@ -77,7 +77,6 @@ h1{
       float: right;
     }
   }
-
   .queue {
     &:empty{
       border: 0;
@@ -182,15 +181,6 @@ h1{
   color: #fff;
 }
 
-.spinner {
-  text-align: center;
-  display: inline-block;
-  vertical-align: middle;
-  width: 20px;
-  height: 20px;
-  position: relative;
-  margin: 0;
-}
 
 input[type="range"]{
   -webkit-appearance:none;
@@ -209,6 +199,16 @@ input[type="range"]::-webkit-slider-thumb{
   background: #333;
   position:relative;
   z-index:3;
+}
+
+.spinner {
+  text-align: center;
+  display: inline-block;
+  vertical-align: middle;
+  width: 15px;
+  height: 15px;
+  position: relative;
+  margin: 0;
 }
 
 .double-bounce1, .double-bounce2 {

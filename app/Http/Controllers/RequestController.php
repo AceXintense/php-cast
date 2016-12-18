@@ -115,7 +115,7 @@ class RequestController extends BaseController
             $record->save();
         }
 
-        $output = shell_exec("sudo mplayer /Stream/\"$fileName\"");
+        $output = shell_exec('sudo mplayer /Stream/"' . $fileName .'"');
 
         if ($record) {
             $record->status = 'Played';

@@ -33,16 +33,22 @@ var refresh = function () {
             $.each(data, function(i, item){
                 if (item.status == 'Playing') {
                     icon = 'stop';
+                    $(".queue").append(
+                        '<div class="record row ' + item.status + '">' +
+                            '<p class="col-xs-8 col-xs-offset-1">' + item.fileName + '</p>' +
+                            '<button class="btn btn-default col-xs-2 play-song"><i class="fa fa-' + icon + '" aria-hidden="true"></i></button>' +
+                        '</div>'
+                    );
                 } else {
                     icon = 'play';
+                    $(".queue").append(
+                        '<div class="record row ' + item.status + '">' +
+                            '<button class="btn btn-danger col-xs-1 col-xs-offset-1 btn-outline delete-track"><i class="fa fa-times" aria-hidden="true"></i></button>' +
+                            '<p class="col-xs-7">' + item.fileName + '</p>' +
+                            '<button class="btn btn-default col-xs-2 play-song"><i class="fa fa-' + icon + '" aria-hidden="true"></i></button>' +
+                        '</div>'
+                    );
                 }
-                $(".queue").append(
-                    '<div class="record row ' + item.status + '">' +
-                        '<button class="btn btn-danger col-xs-1 col-xs-offset-1 btn-outline delete-track"><i class="fa fa-times" aria-hidden="true"></i></button>' +
-                        '<p class="col-xs-7">' + item.fileName + '</p>' +
-                        '<button class="btn btn-default col-xs-2 play-song"><i class="fa fa-' + icon + '" aria-hidden="true"></i></button>' +
-                    '</div>'
-                );
             });
         }
     });
@@ -132,6 +138,7 @@ $('#volume').change(function() {
 $('#request-add').click(function (){
     $(this).text('');
     var $button = $(this).append(spinner);
+    $(this).attr('disabled', true);
     $.ajax({
         url: "/api/addRequest",
         type: "POST",
@@ -141,6 +148,7 @@ $('#request-add').click(function (){
         success: function(data) {
             $button.empty();
             $button.text('Add Response');
+            $('#request-add').removeAttr('disabled');
             $('#request-url').val('');
             messageUpdate(data);
         }
