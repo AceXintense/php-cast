@@ -141,6 +141,18 @@ class RequestController extends BaseController
     }
 
     /**
+     * Sets the volume for the amixer output.
+     * Returns the shells output for debugging.
+     * @param Request $request
+     * @return string
+     */
+    public function changeVolume(Request $request) {
+        $volume = $request->get('volume');
+        $output = shell_exec("sudo amixer set PCM -- -$volume");
+        return "<pre>$output</pre>";
+    }
+
+    /**
      * Remove Request from the Database.
      *
      * @param Request $request
@@ -166,15 +178,5 @@ class RequestController extends BaseController
         }
 
         return "Successfully removed $requestedURL from the queue.";
-    }
-
-    /**
-     * Update Request from the Database.
-     *
-     * @param Request $request
-     * @return string
-     */
-    public function updateRequest(Request $request) {
-        return 'API Hit';
     }
 }

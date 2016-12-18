@@ -94,6 +94,19 @@ $('#more').click(function (){
     }
 });
 
+$('#volume').change(function() {
+    $.ajax({
+        url: "/api/changeVolume",
+        data: {
+          volume: $('#volume').val()
+        },
+        type: "POST",
+        success: function() {
+            console.log('Changed successfully!');
+        }
+    });
+});
+
 $('#request-add').click(function (){
     $(this).text('');
     var $button = $(this).append(spinner);

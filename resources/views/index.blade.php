@@ -38,6 +38,8 @@
 			<p>Now Playing : <span id="playing"></span></p>
 			
 			<div class="playback">
+                <label for="volume">Volume</label>
+                <input type="range" id="volume" name="volume" min="0" max="1000" step="100">
 				<button class="btn btn-default"><i class="fa fa-backward" aria-hidden="true"></i></button>
 				<button class="btn btn-default"><i class="fa fa-play" aria-hidden="true"></i></button>
 				<button class="btn btn-default"><i class="fa fa-forward" aria-hidden="true"></i></button>

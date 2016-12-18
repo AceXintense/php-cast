@@ -22,3 +22,4 @@ Route::get('/playFile', 'RequestController@playFile');
 Route::get('/clearQueue', 'RequestController@clearQueue');
 
 Route::post('/addRequest', 'RequestController@addRequest');
+Route::post('/changeVolume', 'RequestController@changeVolume');
