@@ -196,6 +196,7 @@ class RequestController extends BaseController
      * @return string
      */
     public function getVolume() {
+        //Change this from PCM to Master or what ever amixer defines. PCM is the Pi's default this is why I am using it!
         $output = shell_exec("sudo amixer get PCM | awk '$0~/%/{print $4}' | tr -d '[]%';");
         return "$output";
     }
@@ -209,6 +210,7 @@ class RequestController extends BaseController
     public function setVolume(Request $request) {
 
         $volume = $request->get('volume');
+        //Change this from PCM to Master or what ever amixer defines. PCM is the Pi's default this is why I am using it!
         $output = shell_exec("sudo amixer --quiet set PCM $volume%");
 
         return "<pre>$output</pre>";

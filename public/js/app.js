@@ -130,7 +130,10 @@ $('#volume').change(function() {
         data: {
           volume: $('#volume').val()
         },
-        type: "POST"
+        type: "POST",
+        success: function() {
+            getShuffleMode();
+        }
     });
 });
 
@@ -142,8 +145,8 @@ function getVolume() {
         url: "/api/getVolume",
         type: "GET",
         success: function(data) {
-            $('#volume').val(data);
-            $('#volume-percent').text(data + '%');
+            $('#volume').val(parseInt(data));
+            $('#volume-text').text(data + '%');
         }
     });
 }
