@@ -99,7 +99,7 @@ class RequestController extends BaseController
         $alreadyPlaying = URLRequest::where('status', 'Playing')->first();
         if ($alreadyPlaying) {
             return [
-                'type' => 'Error',
+                'type' => 'Warning',
                 'content' => $alreadyPlaying->fileName . " is playing please wait until the file is finished."
             ];
         }

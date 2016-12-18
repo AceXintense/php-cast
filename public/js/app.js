@@ -2,6 +2,13 @@ var open = false;
 var $messageContainer = $('.message');
 var $messageType = $('#type');
 var $messageContent = $('#content');
+var $messageIcon = $('.icon-message');
+
+var spinner =
+    '<div class="spinner">' +
+        '<div class="double-bounce1"></div>' +
+        '<div class="double-bounce2"></div>' +
+    '</div>';
 
 var playing = function () {
     $.ajax({
@@ -21,12 +28,18 @@ var refresh = function () {
         url: "/api/getRequestedURLs",
         type: "GET",
         success: function(data) {
+            var icon;
             $(".queue").empty();
             $.each(data, function(i, item){
+                if (item.status == 'Playing') {
+                    icon = 'stop';
+                } else {
+                    icon = 'play';
+                }
                 $(".queue").append(
                     '<div class="record row ' + item.status + '">' +
                         '<p class="col-xs-9 col-xs-offset-1">' + item.fileName + '</p>' +
-                        '<button class="btn btn-default col-xs-2" id="play-song"><i class="fa fa-play" aria-hidden="true"></i></button>' +
+                        '<button class="btn btn-default col-xs-2" id="play-song"><i class="fa fa-' + icon + '" aria-hidden="true"></i></button>' +
                     '</div>'
                 );
             });
@@ -36,6 +49,9 @@ var refresh = function () {
 
 $('body').on("click", "#play-song",function (){
     var fileName = $(this).prev().text();
+    var $button = $(this).append(spinner);
+    $(this).find('i').remove();
+    $(this).attr('disabled', 'disabled');
     $.ajax({
         url: "/api/playFile",
         data: {
@@ -43,16 +59,20 @@ $('body').on("click", "#play-song",function (){
         },
         type: "GET",
         success: function(data) {
+            $button.empty();
+            $(this).removeAttr('disabled');
             messageUpdate(data);
         }
     });
 });
 
 $('#clear-queue').click(function () {
+    $(this).attr('disabled', 'disabled');
     $.ajax({
         url: "/api/clearQueue",
         type: "GET",
         success: function(data) {
+            $(this).removeAttr('disabled');
             messageUpdate(data);
         }
     });
@@ -75,6 +95,8 @@ $('#more').click(function (){
 });
 
 $('#request-add').click(function (){
+    $(this).text('');
+    var $button = $(this).append(spinner);
     $.ajax({
         url: "/api/addRequest",
         type: "POST",
@@ -82,6 +104,9 @@ $('#request-add').click(function (){
             requestedURL: $('#request-url').val()
         },
         success: function(data) {
+            $button.empty();
+            $button.text('Add Response');
+            $('#request-url').val('');
             messageUpdate(data);
         }
     });
@@ -92,6 +117,16 @@ $('#request-add').click(function (){
  * @param data
  */
 function messageUpdate(data) {
+    $messageIcon.removeClass('fa-exclamation-circle', 'fa-a-exclamation-triangle', 'fa-check');
+    if (data['type'] == 'Success') {
+        $messageIcon.addClass('fa-check');
+    }
+    if (data['type'] == 'Warning') {
+        $messageIcon.addClass('fa-exclamation-triangle');
+    }
+    if (data['type'] == 'Error') {
+        $messageIcon.addClass('fa-exclamation-circle');
+    }
     $messageContainer.show();
     $messageType.text(data['type']);
     $messageContent.text(data['content']);
@@ -100,4 +135,4 @@ function messageUpdate(data) {
 
 refresh();
 
-setInterval(refresh, 60 * 40);
+setInterval(refresh, 60 * 20);

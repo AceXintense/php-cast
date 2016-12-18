@@ -5,6 +5,7 @@
 	<meta charset="UTF-8">
 	<title>PHPCast Frontend</title>
 	<link rel='stylesheet prefetch' href='https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css'>
+	<link rel='stylesheet' href='./css/font-awesome.css'>
 	<link rel='stylesheet prefetch' href='https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css'>
 	<link rel="stylesheet" href="./css/app.css">
 </head>
@@ -23,10 +24,10 @@
 			 </div>
 		</div>
 		<div class="message">
-			<button class="btn btn-default" id="close">Close</button>
-			<h1 id="type">Error</h1>
-			<p id="content">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque eu odio mauris. Ut ac dolor ut tellus pellentesque viverra. Aliquam sed venenatis odio. Aliquam rutrum nisl id mauris viverra, ac posuere enim iaculis. Pellentesque non nibh ut justo pulvinar porta et eget diam. Morbi lobortis lorem ac risus interdum, eget commodo purus interdum. Quisque at lectus a ante posuere convallis at porta arcu. Aliquam eu euismod libero.
-Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Sed vitae diam pulvinar, volutpat felis eu, tempus massa. Suspendisse potenti. Nunc convallis sit amet lorem at rutrum. In et massa nisl. Integer non tortor porttitor, rutrum nulla eget, ultricies eros. Duis id libero nec dui bibendum malesuada. Maecenas eleifend porta purus auctor ornare. Nulla ut erat eget metus pellentesque facilisis. Etiam vestibulum magna ac nibh auctor, eu pellentesque tellus pretium. Aenean ex sapien, sodales in dignissim eget, rhoncus ac eros. Duis auctor in mauris fermentum maximus. Suspendisse ligula turpis, condimentum et leo nec, cursus rhoncus lacus. Phasellus magna libero, hendrerit vitae imperdiet consequat, posuere sed dolor.</p>
+			<i class="fa fa-check icon-message" aria-hidden="true"></i>
+			<h1 id="type">Issue!</h1>
+			<p id="content">Something has broken the API is not overriding this text!</p>
+			<button class="btn btn-danger btn-outline" id="close">Close</button>
 			<button class="btn btn-default" id="more">Show More</button>
 		</div>
 	</div>
@@ -51,7 +52,6 @@ Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos
 	</div>
 </div>
 
-  <script src="https://use.fontawesome.com/041fd98d20.js"></script>
   <script src='./js/jquery.min.js'></script>
   <script src="./js/app.js"></script>
 
