@@ -147,7 +147,7 @@ function getVolume() {
         type: "GET",
         success: function(data) {
             $('#volume').val(parseInt(data));
-            $('#volume-text').text(data + '%');
+            $('#volume-text').text(parseInt(data) + '%');
         }
     });
 }
@@ -196,7 +196,7 @@ $('#shuffle').click(function () {
         data: {
             toggle: shuffle
         },
-        success: function(data) {
+        success: function() {
             getShuffleMode();
         }
     });
