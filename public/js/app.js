@@ -132,6 +132,7 @@ $('#volume').change(function() {
         },
         type: "POST",
         success: function() {
+            $('#volume-text').text($('#volume').val() + '%');
             getShuffleMode();
         }
     });
