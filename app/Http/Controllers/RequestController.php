@@ -13,6 +13,7 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 class RequestController extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
+    private $shuffle = false;
 
     /**
      * Get the playing song.
@@ -28,6 +29,20 @@ class RequestController extends BaseController
      */
     public function getRequestedURLs() {
         return URLRequest::all()->toArray();
+    }
+
+    /**
+     * Sets shuffle mode.
+     * @param Request $request
+     * @return array
+     */
+    public function setShuffle(Request $request) {
+        $this->shuffle = $request->get('toggle');
+        return [
+            'state' => $this->shuffle,
+            'type' => 'Success',
+            'content' => 'Shuffle ' . $this->shuffle
+        ];
     }
 
     /**
@@ -111,19 +126,8 @@ class RequestController extends BaseController
         }
 
         $fileName = $request->get('fileName');
-        /** @var URLRequest $record */
-        $record = URLRequest::where('fileName', $fileName)->first();
-        if ($record) {
-            $record->status = 'Playing';
-            $record->save();
-        }
 
-        $output = shell_exec('sudo mplayer /Stream/"' . $fileName .'"');
-
-        if ($record) {
-            $record->status = 'Played';
-            $record->save();
-        }
+        $output = $this->playFromFileName($fileName);
 
         return "<pre>$output</pre>";
 
@@ -182,5 +186,28 @@ class RequestController extends BaseController
 
         return "<pre>$output</pre>";
 
+    }
+
+    private function playFromFileName($fileName) {
+
+        /** @var URLRequest $record */
+        $record = URLRequest::where('fileName', $fileName)->first();
+        if ($record) {
+            $record->status = 'Playing';
+            $record->save();
+        }
+
+        $output = shell_exec('sudo mplayer /Stream/"' . $fileName .'"');
+
+        if ($record) {
+            $record->status = 'Played';
+            $record->save();
+        }
+
+        if ($this->shuffle) {
+            $nextRecord = URLRequest::all()->random();
+            $this->playFromFileName($nextRecord->fileName);
+        }
+        return $output;
     }
 }

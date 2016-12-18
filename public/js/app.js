@@ -4,6 +4,8 @@ var $messageType = $('#type');
 var $messageContent = $('#content');
 var $messageIcon = $('.icon-message');
 
+var shuffle = false;
+
 var spinner =
     '<div class="spinner">' +
         '<div class="double-bounce1"></div>' +
@@ -32,20 +34,19 @@ var refresh = function () {
             $(".queue").empty();
             $.each(data, function(i, item){
                 if (item.status == 'Playing') {
-                    icon = 'stop';
                     $(".queue").append(
                         '<div class="record row ' + item.status + '">' +
-                            '<p class="col-xs-8 col-xs-offset-1">' + item.fileName + '</p>' +
-                            '<button class="btn btn-default col-xs-2 play-song"><i class="fa fa-' + icon + '" aria-hidden="true"></i></button>' +
+                            '<div class="col-xs-1"></div>' +
+                            '<p class="col-xs-8">' + item.fileName + '</p>' +
+                            '<button class="btn btn-default col-xs-2 play-song"><i class="fa fa-stop" aria-hidden="true"></i></button>' +
                         '</div>'
                     );
                 } else {
-                    icon = 'play';
                     $(".queue").append(
                         '<div class="record row ' + item.status + '">' +
                             '<button class="btn btn-danger col-xs-2 col-xs-offset-1 btn-outline delete-track"><i class="fa fa-times" aria-hidden="true"></i></button>' +
                             '<p class="col-xs-6">' + item.fileName + '</p>' +
-                            '<button class="btn btn-default col-xs-2 play-song"><i class="fa fa-' + icon + '" aria-hidden="true"></i></button>' +
+                            '<button class="btn btn-default col-xs-2 play-song"><i class="fa fa-play" aria-hidden="true"></i></button>' +
                         '</div>'
                     );
                 }
@@ -107,6 +108,7 @@ $('#clear-queue').click(function () {
 });
 
 $('#close').click(function (){
+    $messageContainer.removeClass('animated slideInLeft');
     $messageContainer.hide();
 });
 
@@ -155,12 +157,33 @@ $('#request-add').click(function (){
     });
 });
 
+$('#shuffle').click(function () {
+    shuffle = !shuffle;
+    $.ajax({
+        url: "/api/setShuffle",
+        type: "GET",
+        data: {
+            toggle: shuffle
+        },
+        success: function(data) {
+            if (data['state'] == 'true') {
+                $('#shuffle').removeClass('btn-danger').addClass('btn-success');
+            } else {
+                $('#shuffle').removeClass('btn-success').addClass('btn-danger');
+            }
+            messageUpdate(data);
+        }
+    });
+});
+
 /**
  * Gives back the output from the API in a message on the front-end.
  * @param data
  */
 function messageUpdate(data) {
-    $messageIcon.removeClass('fa-exclamation-circle', 'fa-a-exclamation-triangle', 'fa-check');
+    $messageIcon.removeClass('fa-exclamation-circle');
+    $messageIcon.removeClass('fa-a-exclamation-triangle');
+    $messageIcon.removeClass('fa-check');
     if (data['type'] == 'Success') {
         $messageIcon.addClass('fa-check');
     }
@@ -170,6 +193,7 @@ function messageUpdate(data) {
     if (data['type'] == 'Error') {
         $messageIcon.addClass('fa-exclamation-circle');
     }
+    $messageContainer.addClass('animated slideInLeft');
     $messageContainer.show();
     $messageType.text(data['type']);
     $messageContent.text(data['content']);
@@ -178,4 +202,4 @@ function messageUpdate(data) {
 
 refresh();
 
-setInterval(refresh, 60 * 20);
+setInterval(refresh, 60 * 50);

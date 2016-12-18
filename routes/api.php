@@ -17,6 +17,9 @@ use Illuminate\Http\Request;
 Route::get('/getRequestedURLs', 'RequestController@getRequestedURLs');
 Route::get('/getPlaying', 'RequestController@getPlaying');
 
+//Toggles shuffling of the Queue and plays one song after another.
+Route::get('/setShuffle', 'RequestController@setShuffle');
+
 //Plays the requested file.
 Route::get('/playFile', 'RequestController@playFile');
 

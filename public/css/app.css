@@ -1,6 +1,7 @@
 @import url("https://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700");
 * {
-  font-family: 'Ubuntu', sans-serif; }
+  font-family: 'Ubuntu', sans-serif;
+  outline: none !important; }
 
 html, body {
   background: #323232; }
