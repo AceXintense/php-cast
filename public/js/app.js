@@ -43,8 +43,8 @@ var refresh = function () {
                     icon = 'play';
                     $(".queue").append(
                         '<div class="record row ' + item.status + '">' +
-                            '<button class="btn btn-danger col-xs-1 col-xs-offset-1 btn-outline delete-track"><i class="fa fa-times" aria-hidden="true"></i></button>' +
-                            '<p class="col-xs-7">' + item.fileName + '</p>' +
+                            '<button class="btn btn-danger col-xs-2 col-xs-offset-1 btn-outline delete-track"><i class="fa fa-times" aria-hidden="true"></i></button>' +
+                            '<p class="col-xs-6">' + item.fileName + '</p>' +
                             '<button class="btn btn-default col-xs-2 play-song"><i class="fa fa-' + icon + '" aria-hidden="true"></i></button>' +
                         '</div>'
                     );
