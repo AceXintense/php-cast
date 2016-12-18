@@ -57,7 +57,7 @@ class RequestController extends BaseController
             ];
         }
         try {
-            $this->downloadFile($requestedURL);
+            $fileName = $this->downloadFile($requestedURL);
         } catch (\Exception $e) {
             return [
                 'type' => 'Error',
@@ -67,7 +67,7 @@ class RequestController extends BaseController
 
         return [
             'type' => 'Success',
-            'content' => "Successfully added $requestedURL to the queue."
+            'content' => "Successfully added $fileName to the queue."
         ];
 
     }
@@ -75,6 +75,7 @@ class RequestController extends BaseController
     /**
      * Download the file from the URL and then add the fileName to the database.
      * @param $url string
+     * @return string
      */
     private function downloadFile($url) {
 
@@ -88,6 +89,8 @@ class RequestController extends BaseController
 
         $record->fileName = $getSongName;
         $record->save();
+
+        return $getSongName;
 
     }
 
