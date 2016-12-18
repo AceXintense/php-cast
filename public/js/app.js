@@ -27,11 +27,11 @@ var playing = function () {
 var refresh = function () {
     playing();
     getShuffleMode();
+    getVolume();
     $.ajax({
         url: "/api/getRequestedURLs",
         type: "GET",
         success: function(data) {
-            var icon;
             $(".queue").empty();
             $.each(data, function(i, item){
                 if (item.status == 'Playing') {
@@ -115,7 +115,6 @@ $('#close').click(function (){
 
 $('#more').click(function (){
     open = !open;
-
     if(open) {
         $messageContent.css('white-space', 'normal');
         $(this).text('Show Less');
@@ -127,16 +126,27 @@ $('#more').click(function (){
 
 $('#volume').change(function() {
     $.ajax({
-        url: "/api/changeVolume",
+        url: "/api/setVolume",
         data: {
           volume: $('#volume').val()
         },
-        type: "POST",
-        success: function() {
-            console.log('Changed successfully!');
-        }
+        type: "POST"
     });
 });
+
+/**
+ * Gets the volume on the server and applies it to the #volume element.
+ */
+function getVolume() {
+    $.ajax({
+        url: "/api/getVolume",
+        type: "GET",
+        success: function(data) {
+            $('#volume').val(data);
+            $('#volume-percent').text(data + '%');
+        }
+    });
+}
 
 function getShuffleMode() {
     $.ajax({

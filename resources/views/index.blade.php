@@ -38,8 +38,8 @@
 			<p>Now Playing : <span id="playing"></span></p>
 			
 			<div class="playback">
-                <label for="volume">Volume</label>
-                <input type="range" id="volume" name="volume" min="0" max="3500" step="100">
+                <label for="volume">Volume <span id="volume-percent">%</span></label>
+                <input type="range" id="volume" name="volume" min="0" max="100" step="10">
 				<button class="btn btn-danger" id="shuffle"><i class="fa fa-random" aria-hidden="true"></i></button>
 				<button class="btn btn-default" id="clear-queue">Clear Queue</button>
 			</div>

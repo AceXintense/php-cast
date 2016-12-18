@@ -32,4 +32,5 @@ Route::get('/removeFile', 'RequestController@removeFile');
 Route::post('/addRequest', 'RequestController@addRequest');
 
 //Changes the volume on the driver on the server.
-Route::post('/changeVolume', 'RequestController@changeVolume');
+Route::post('/setVolume', 'RequestController@setVolume');
+Route::get('/getVolume', 'RequestController@getVolume');

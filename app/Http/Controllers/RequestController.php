@@ -192,15 +192,24 @@ class RequestController extends BaseController
     }
 
     /**
+     * Gets the volume value from the PCM.
+     * @return string
+     */
+    public function getVolume() {
+        $output = shell_exec("sudo amixer get PCM | awk '$0~/%/{print $4}' | tr -d '[]%';");
+        return "$output";
+    }
+
+    /**
      * Sets the volume for the amixer output.
      * Returns the shells output for debugging.
      * @param Request $request
      * @return string
      */
-    public function changeVolume(Request $request) {
+    public function setVolume(Request $request) {
 
         $volume = $request->get('volume');
-        $output = shell_exec("sudo amixer set PCM -- -$volume");
+        $output = shell_exec("sudo amixer --quiet set PCM $volume%");
 
         return "<pre>$output</pre>";
 
