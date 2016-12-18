@@ -9,7 +9,6 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-use Illuminate\Support\Facades\DB;
 
 class RequestController extends BaseController
 {
@@ -38,6 +37,7 @@ class RequestController extends BaseController
      * @return string
      */
     public function addRequest(Request $request) {
+
         $utils = new Utilities();
         $requestedURL = $request->get('requestedURL');
 
@@ -69,6 +69,7 @@ class RequestController extends BaseController
             'type' => 'Success',
             'content' => "Successfully added $requestedURL to the queue."
         ];
+
     }
 
     /**
@@ -76,6 +77,7 @@ class RequestController extends BaseController
      * @param $url string
      */
     private function downloadFile($url) {
+
         /** @var URLRequest $record */
         $record = new URLRequest();
         $record->url = $url;
@@ -86,6 +88,7 @@ class RequestController extends BaseController
 
         $record->fileName = $getSongName;
         $record->save();
+
     }
 
     /**
@@ -111,7 +114,9 @@ class RequestController extends BaseController
             $record->status = 'Playing';
             $record->save();
         }
+
         $output = shell_exec("sudo mplayer /Stream/\"$fileName\"");
+
         if ($record) {
             $record->status = 'Played';
             $record->save();
@@ -125,6 +130,7 @@ class RequestController extends BaseController
      * This function clears the url_requests table of all the requests it also removes the files linked to the records.
      */
     public function clearQueue() {
+
         if (count(URLRequest::all()) > 0) {
             URLRequest::truncate();
             shell_exec('sudo rm -R /Stream && sudo mkdir /Stream');
@@ -138,6 +144,26 @@ class RequestController extends BaseController
                 'content' => 'There is nothing in the queue to clear.'
             ];
         }
+
+    }
+
+    /**
+     * Removes a file from the Server and the database.
+     * @param Request $request
+     * @return array
+     */
+    public function removeFile(Request $request) {
+
+        $fileName = $request->get('fileName');
+        $record = URLRequest::where('fileName', $fileName)->first();
+        shell_exec('sudo rm /Stream/"' . $fileName . '"');
+        $record->delete();
+
+        return [
+            'type' => 'Success',
+            'content' => 'Successfully removed ' . $fileName
+        ];
+
     }
 
     /**
@@ -147,36 +173,11 @@ class RequestController extends BaseController
      * @return string
      */
     public function changeVolume(Request $request) {
+
         $volume = $request->get('volume');
         $output = shell_exec("sudo amixer set PCM -- -$volume");
+
         return "<pre>$output</pre>";
-    }
 
-    /**
-     * Remove Request from the Database.
-     *
-     * @param Request $request
-     * @return string
-     */
-    public function removeRequest(Request $request) {
-        $utils = new Utilities();
-        $requestedURL = $request->get('requestedURL');
-
-        if (!$utils->validURL($requestedURL)) {
-            return 'The requested URL is not a URL please try again.';
-        }
-
-        try {
-            /** @var URLRequest $record */
-            $record = URLRequest::all()
-                ->where('status', 'Requested')
-                ->where('url', $requestedURL);
-            $record->delete();
-
-        } catch (\Exception $e) {
-            return $e;
-        }
-
-        return "Successfully removed $requestedURL from the queue.";
     }
 }

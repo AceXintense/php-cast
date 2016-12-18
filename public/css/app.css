@@ -72,6 +72,8 @@ h1 {
     border-bottom: 1px solid transparent;
     text-align: center;
     padding: 5px; }
+    .control .queue .record .delete-track {
+      float: left; }
     .control .queue .record p {
       margin: 0; }
     .control .queue .record:not(:first-child):not(:last-child):hover {

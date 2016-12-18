@@ -38,8 +38,9 @@ var refresh = function () {
                 }
                 $(".queue").append(
                     '<div class="record row ' + item.status + '">' +
-                        '<p class="col-xs-9 col-xs-offset-1">' + item.fileName + '</p>' +
-                        '<button class="btn btn-default col-xs-2" id="play-song"><i class="fa fa-' + icon + '" aria-hidden="true"></i></button>' +
+                        '<button class="btn btn-danger col-xs-1 col-xs-offset-1 btn-outline delete-track"><i class="fa fa-times" aria-hidden="true"></i></button>' +
+                        '<p class="col-xs-7">' + item.fileName + '</p>' +
+                        '<button class="btn btn-default col-xs-2 play-song"><i class="fa fa-' + icon + '" aria-hidden="true"></i></button>' +
                     '</div>'
                 );
             });
@@ -47,7 +48,28 @@ var refresh = function () {
     });
 };
 
-$('body').on("click", "#play-song",function (){
+//noinspection JSJQueryEfficiency
+$('body').on("click", ".delete-track",function (){
+    var fileName = $(this).next().text();
+    var $button = $(this).append(spinner);
+    $(this).find('i').remove();
+    $(this).attr('disabled', 'disabled');
+    $.ajax({
+        url: "/api/removeFile",
+        data: {
+            fileName: fileName
+        },
+        type: "GET",
+        success: function(data) {
+            $button.empty();
+            $(this).removeAttr('disabled');
+            messageUpdate(data);
+        }
+    });
+});
+
+//noinspection JSJQueryEfficiency
+$('body').on("click", ".play-song",function (){
     var fileName = $(this).prev().text();
     var $button = $(this).append(spinner);
     $(this).find('i').remove();
