@@ -1,8 +1,21 @@
 @import url("https://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700");
 * {
   font-family: 'Ubuntu', sans-serif;
-  outline: none !important; }
+  outline: none !important;
+  box-shadow: none !important; }
 
+h1 {
+  color: #f35626;
+  background-image: -webkit-linear-gradient(92deg, #f35626, #feab3a);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  -webkit-animation: hue 60s infinite linear; }
+
+@-webkit-keyframes hue {
+  from {
+    -webkit-filter: hue-rotate(0deg); }
+  to {
+    -webkit-filter: hue-rotate(-360deg); } }
 html, body {
   background: #323232; }
 
@@ -62,7 +75,7 @@ h1 {
     float: right; }
 .control .queue {
   border: 1px solid #ccc;
-  border-radius: 10px;
+  border-radius: 5px;
   overflow: hidden;
   overflow-y: auto;
   max-height: 250px; }
@@ -86,38 +99,18 @@ h1 {
     .control .queue .record:hover {
       background-color: #e6e6e6; }
 
-::-webkit-scrollbar {
-  width: 4px;
-  height: 4px; }
+::-webkit-scrollbar-track {
+  border-radius: 5px;
+  background-color: transparent; }
 
-::-webkit-scrollbar-button {
-  width: 8px;
-  height: 8px; }
+::-webkit-scrollbar {
+  width: 6px;
+  padding: 10px 0;
+  background-color: transparent; }
 
 ::-webkit-scrollbar-thumb {
-  background: #e1e1e1;
-  border: 0px none #ffffff;
-  border-radius: 100px; }
-
-::-webkit-scrollbar-thumb:hover {
-  background: #ffffff; }
-
-::-webkit-scrollbar-thumb:active {
-  background: #5a5a5a; }
-
-::-webkit-scrollbar-track {
-  background: #666666;
-  border: 0px none #ffffff;
-  border-radius: 100px; }
-
-::-webkit-scrollbar-track:hover {
-  background: #666666; }
-
-::-webkit-scrollbar-track:active {
-  background: #333333; }
-
-::-webkit-scrollbar-corner {
-  background: transparent; }
+  border-radius: 10px;
+  background-color: #3b4c54; }
 
 .btn-outline {
   background-color: transparent;

@@ -26,6 +26,7 @@ var playing = function () {
 
 var refresh = function () {
     playing();
+    getShuffleMode();
     $.ajax({
         url: "/api/getRequestedURLs",
         type: "GET",
@@ -137,6 +138,22 @@ $('#volume').change(function() {
     });
 });
 
+function getShuffleMode() {
+    $.ajax({
+        url: "/api/getShuffle",
+        type: "GET",
+        success: function(data) {
+            if (data['state'] == 1) {
+                $('#shuffle').removeClass('btn-danger').addClass('btn-success');
+                shuffle = true;
+            } else {
+                $('#shuffle').removeClass('btn-success').addClass('btn-danger');
+                shuffle = false;
+            }
+        }
+    });
+}
+
 $('#request-add').click(function (){
     $(this).text('');
     var $button = $(this).append(spinner);
@@ -161,17 +178,12 @@ $('#shuffle').click(function () {
     shuffle = !shuffle;
     $.ajax({
         url: "/api/setShuffle",
-        type: "GET",
+        type: "POST",
         data: {
             toggle: shuffle
         },
         success: function(data) {
-            if (data['state'] == 'true') {
-                $('#shuffle').removeClass('btn-danger').addClass('btn-success');
-            } else {
-                $('#shuffle').removeClass('btn-success').addClass('btn-danger');
-            }
-            messageUpdate(data);
+            getShuffleMode();
         }
     });
 });

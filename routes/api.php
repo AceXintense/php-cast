@@ -18,7 +18,8 @@ Route::get('/getRequestedURLs', 'RequestController@getRequestedURLs');
 Route::get('/getPlaying', 'RequestController@getPlaying');
 
 //Toggles shuffling of the Queue and plays one song after another.
-Route::get('/setShuffle', 'RequestController@setShuffle');
+Route::post('/setShuffle', 'RequestController@setShuffle');
+Route::get('/getShuffle', 'RequestController@getShuffle');
 
 //Plays the requested file.
 Route::get('/playFile', 'RequestController@playFile');

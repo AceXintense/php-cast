@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Option;
 use App\System\Utilities;
 use App\URLRequest;
 use Illuminate\Foundation\Bus\DispatchesJobs;
@@ -13,7 +14,6 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 class RequestController extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
-    private $shuffle = false;
 
     /**
      * Get the playing song.
@@ -32,17 +32,35 @@ class RequestController extends BaseController
     }
 
     /**
-     * Sets shuffle mode.
-     * @param Request $request
+     * Gets the value of shuffle from the database.
      * @return array
      */
-    public function setShuffle(Request $request) {
-        $this->shuffle = $request->get('toggle');
+    public function getShuffle() {
+        /** @var Option $shuffle */
+        $shuffle = Option::where('name', 'shuffle')->first();
         return [
-            'state' => $this->shuffle,
-            'type' => 'Success',
-            'content' => 'Shuffle ' . $this->shuffle
+            'state' => $shuffle->value
         ];
+    }
+
+    /**
+     * Sets shuffle mode.
+     * @return array
+     */
+    public function setShuffle() {
+        //Check to see if we have shuffle in the Options table.
+        /** @var Option $shuffle */
+        $shuffle = Option::where('name', 'shuffle')->first();
+        if (is_null($shuffle)) {
+            $newShuffle = new Option();
+            $newShuffle->name = 'shuffle';
+            $newShuffle->value = true;
+            $newShuffle->save();
+        } else {
+            //Toggle the value from true to false
+            $shuffle->value = ($shuffle->value = !$shuffle->value);
+            $shuffle->save();
+        }
     }
 
     /**
@@ -204,7 +222,9 @@ class RequestController extends BaseController
             $record->save();
         }
 
-        if ($this->shuffle) {
+        /** @var Option $shuffle */
+        $shuffle = Option::where('name', 'shuffle')->first();
+        if ($shuffle->value) {
             $nextRecord = URLRequest::all()->random();
             $this->playFromFileName($nextRecord->fileName);
         }
