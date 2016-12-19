@@ -192,6 +192,19 @@ class RequestController extends BaseController
     }
 
     /**
+     * Pauses the file that is being used by mplayer.
+     */
+    public function pause() {
+        try{
+            $control = fopen('/tmp/control', 'a');
+            fwrite($control, 'pause');
+            fclose($control);
+        } catch (\Exception $e) {
+            die(var_dump($e));
+        }
+    }
+
+    /**
      * Gets the volume value from the PCM.
      * @return string
      */
@@ -217,6 +230,11 @@ class RequestController extends BaseController
 
     }
 
+    /**
+     * Plays file from the filename!
+     * @param $fileName
+     * @return string
+     */
     private function playFromFileName($fileName) {
 
         /** @var URLRequest $record */
@@ -226,7 +244,12 @@ class RequestController extends BaseController
             $record->save();
         }
 
-        $output = shell_exec('sudo mplayer /Stream/"' . $fileName .'"');
+        //Creates the fifo file for mplayer to read!
+        if (!file_exists('/tmp/control')) {
+            posix_mkfifo('/tmp/control', '777');
+        }
+
+        $output = shell_exec('sudo mplayer -idle -slave -input file=/tmp/control /Stream/"' . $fileName .'"');
 
         if ($record) {
             $record->status = 'Played';
