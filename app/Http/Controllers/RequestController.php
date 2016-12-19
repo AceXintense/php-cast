@@ -192,14 +192,6 @@ class RequestController extends BaseController
     }
 
     /**
-     * Pauses the file that is being used by mplayer.
-     */
-    public function pause() {
-        $output = shell_exec('sudo echo "pause" > /tmp/control');
-        return $output;
-    }
-
-    /**
      * Gets the volume value from the PCM.
      * @return string
      */
@@ -244,7 +236,7 @@ class RequestController extends BaseController
             posix_mkfifo('/tmp/control', '777');
         }
 
-        $output = shell_exec('sudo mplayer -idle -slave -input file=/tmp/control /Stream/"' . $fileName .'"');
+        $output = shell_exec('sudo mplayer /Stream/"' . $fileName .'"');
 
         if ($record) {
             $record->status = 'Played';

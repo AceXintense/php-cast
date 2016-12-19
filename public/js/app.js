@@ -56,13 +56,6 @@ var refresh = function () {
     });
 };
 
-$('#pause').click(function () {
-    $.ajax({
-        url: "/api/pause",
-        type: "POST"
-    });
-});
-
 //noinspection JSJQueryEfficiency
 $('body').on("click", ".delete-track",function (){
     var fileName = $(this).next().text();

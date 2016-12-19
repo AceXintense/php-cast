@@ -36,7 +36,6 @@
 			<h1>Cast Control</h1>
 			
 			<p>Now Playing : <span id="playing"></span></p>
-			<button class="btn btn-default" id="pause">Pause</button>
 			
 			<div class="playback">
                 <label for="volume">Volume <span id="volume-text">%</span></label>
