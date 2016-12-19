@@ -195,13 +195,8 @@ class RequestController extends BaseController
      * Pauses the file that is being used by mplayer.
      */
     public function pause() {
-        try{
-            $control = fopen('/tmp/control', 'a');
-            fwrite($control, 'pause');
-            fclose($control);
-        } catch (\Exception $e) {
-            die(var_dump($e));
-        }
+        $output = shell_exec('sudo echo "pause" > /tmp/control');
+        return $output;
     }
 
     /**
