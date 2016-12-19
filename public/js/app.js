@@ -17,9 +17,7 @@ var playing = function () {
         url: "/api/getPlaying",
         type: "GET",
         success: function(data) {
-            $.each(data, function(i, item) {
-                $('#playing').text(item.fileName);
-            });
+            $('#playing').text(data['fileName']);
         }
     });
 };
@@ -34,12 +32,12 @@ var refresh = function () {
         success: function(data) {
             $(".queue").empty();
             $.each(data, function(i, item){
-                if (item.status == 'Playing') {
+                if (item.status == 'Playing' || item.status == 'Paused') {
                     $(".queue").append(
                         '<div class="record row ' + item.status + '">' +
                             '<div class="col-xs-1"></div>' +
                             '<p class="col-xs-8">' + item.fileName + '</p>' +
-                            '<button class="btn btn-default col-xs-2 play-song"><i class="fa fa-stop" aria-hidden="true"></i></button>' +
+                            '<button class="btn btn-default col-xs-2 stop-file"><i class="fa fa-stop" aria-hidden="true"></i></button>' +
                         '</div>'
                     );
                 } else {
@@ -47,7 +45,7 @@ var refresh = function () {
                         '<div class="record row ' + item.status + '">' +
                             '<button class="btn btn-danger col-xs-2 col-xs-offset-1 btn-outline delete-track"><i class="fa fa-times" aria-hidden="true"></i></button>' +
                             '<p class="col-xs-6">' + item.fileName + '</p>' +
-                            '<button class="btn btn-default col-xs-2 play-song"><i class="fa fa-play" aria-hidden="true"></i></button>' +
+                            '<button class="btn btn-default col-xs-2 play-file"><i class="fa fa-play" aria-hidden="true"></i></button>' +
                         '</div>'
                     );
                 }
@@ -55,6 +53,24 @@ var refresh = function () {
         }
     });
 };
+
+$('#pause').click(function () {
+    $.ajax({
+        url: "/api/pauseFile",
+        data: {
+          fileName: $('#playing').text()
+        },
+        type: "GET",
+        success: function (data) {
+            if (data == 'Playing') {
+                $('#pause').removeClass('btn-danger').addClass('btn-default');
+            } else {
+                $('#pause').removeClass('btn-default').addClass('btn-danger');
+            }
+
+        }
+    });
+});
 
 //noinspection JSJQueryEfficiency
 $('body').on("click", ".delete-track",function (){
@@ -77,7 +93,7 @@ $('body').on("click", ".delete-track",function (){
 });
 
 //noinspection JSJQueryEfficiency
-$('body').on("click", ".play-song",function (){
+$('body').on("click", ".play-file",function (){
     var fileName = $(this).prev().text();
     var $button = $(this).append(spinner);
     $(this).find('i').remove();
@@ -96,13 +112,37 @@ $('body').on("click", ".play-song",function (){
     });
 });
 
+//noinspection JSJQueryEfficiency
+$('body').on("click", ".stop-file",function (){
+    var fileName = $(this).prev().text();
+    var $button = $(this).append(spinner);
+    $(this).find('i').remove();
+    $(this).attr('disabled', 'disabled');
+    $.ajax({
+        url: "/api/stopFile",
+        data: {
+            fileName: fileName
+        },
+        type: "GET",
+        success: function(data) {
+            $button.empty();
+            $(this).removeAttr('disabled');
+            messageUpdate(data);
+        }
+    });
+});
+
 $('#clear-queue').click(function () {
     $(this).attr('disabled', 'disabled');
     $.ajax({
         url: "/api/clearQueue",
+        data: {
+            fileName: $('#playing').text()
+        },
         type: "GET",
         success: function(data) {
             $(this).removeAttr('disabled');
+            $('#playing').text(' Nothing is playing.. ');
             messageUpdate(data);
         }
     });

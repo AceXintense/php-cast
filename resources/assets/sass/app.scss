@@ -4,7 +4,12 @@
   font-family: 'Ubuntu', sans-serif;
   outline: none !important;
   box-shadow: none !important;
+  &:focus {
+    outline: none !important;
+    box-shadow: none !important;
+  }
 }
+
 h1{
   color: #f35626;
   background-image: -webkit-linear-gradient(92deg,#f35626,#feab3a);
@@ -53,6 +58,13 @@ h1{
   color: white;
   &:hover {
     background-color: #499b4d !important;
+  }
+}
+.Paused {
+  background-color: #F9A825;
+  color: white;
+  &:hover {
+    background-color: #ffac25 !important;
   }
 }
 

@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Support\Facades\URL;
 
 class RequestController extends BaseController
 {
@@ -20,7 +21,7 @@ class RequestController extends BaseController
      * @return array
      */
     public function getPlaying() {
-        return URLRequest::all()->where('status', 'Playing')->toArray();
+        return URLRequest::where('status', 'Playing')->orWhere('status', 'Paused')->first();
     }
 
     /**
@@ -153,8 +154,13 @@ class RequestController extends BaseController
 
     /**
      * This function clears the url_requests table of all the requests it also removes the files linked to the records.
+     * @param Request $request
+     * @return array
      */
-    public function clearQueue() {
+    public function clearQueue(Request $request) {
+
+        $fileName = $request->get('fileName');
+        $this->stop($fileName);
 
         if (count(URLRequest::all()) > 0) {
             URLRequest::truncate();
@@ -189,6 +195,52 @@ class RequestController extends BaseController
             'content' => 'Successfully removed ' . $fileName
         ];
 
+    }
+
+    public function stopFile(Request $request) {
+
+        $fileName = $request->get('fileName');
+
+        $this->stop($fileName);
+
+        return [
+            'type' => 'Success',
+            'content' => 'Stopped ' . $fileName . ' Successfully'
+        ];
+
+    }
+
+    /**
+     * Stops the playback from MPlayer it also updates the record in the Database.
+     * @param $fileName
+     */
+    private function stop($fileName) {
+        exec('sudo echo "quit" > /tmp/control');
+
+        /** @var URLRequest $record */
+        $record = URLRequest::where('fileName', $fileName)->first();
+        $record->status = 'Played';
+        $record->save();
+    }
+
+    /**
+     * Pauses the file that is being used by mplayer it also updates the database with these changes.
+     * @param Request $request
+     * @return string
+     */
+    public function pauseFile(Request $request) {
+        $fileName = $request->get('fileName');
+        exec('sudo echo "pause" > /tmp/control');
+        /** @var URLRequest $record */
+        $record = URLRequest::where('fileName', $fileName)->first();
+        if ($record->status == 'Playing') {
+            $record->status = 'Paused';
+        } else {
+            $record->status = 'Playing';
+        }
+        $record->save();
+
+        return $record->status;
     }
 
     /**
@@ -233,10 +285,11 @@ class RequestController extends BaseController
 
         //Creates the fifo file for mplayer to read!
         if (!file_exists('/tmp/control')) {
-            posix_mkfifo('/tmp/control', '777');
+            exec('sudo mkfifo /tmp/control');
+            exec('sudo chmod 777 /tmp/control');
         }
 
-        $output = shell_exec('sudo mplayer /Stream/"' . $fileName .'"');
+        $output = shell_exec('sudo mplayer -input file=/tmp/control /Stream/"' . $fileName .'"');
 
         if ($record) {
             $record->status = 'Played';

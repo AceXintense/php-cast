@@ -21,8 +21,12 @@ Route::get('/getPlaying', 'RequestController@getPlaying');
 Route::post('/setShuffle', 'RequestController@setShuffle');
 Route::get('/getShuffle', 'RequestController@getShuffle');
 
+//Toggles shuffling of the Queue and plays one song after another.
+Route::get('/pauseFile', 'RequestController@pauseFile');
+
 //Plays the requested file.
 Route::get('/playFile', 'RequestController@playFile');
+Route::get('/stopFile', 'RequestController@stopFile');
 
 //Handles removing of files from the database and the filesystem.
 Route::get('/clearQueue', 'RequestController@clearQueue');
