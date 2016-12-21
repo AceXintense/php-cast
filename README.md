@@ -17,3 +17,11 @@ PHPCast is using the idea of the Google Chromecast where you can stream videos /
 #Setup
 I will be adding a script called setup.sh to the project that will provision the server that it will be applied to. The script will install all of the prerequisites for the project to run.
 
+#Things to do
+1. Clean up the code base and change the structure of the code to flow better!
+2. Make use of the /App/System/Utilities.php with implementing smaller functions.
+3. Create the setup.sh (Important) this will enable users to quickly get up and running with it on there devices.
+4. Expand upon the front-end to make the application look more appealing / more professional for people.
+5. Create a google chrome plugin allowing to request from just a click on the page.
+6. Add Youtube downloader to the backend or come up with a new solution using something like PhantomJS to render the page and record the audio.
+7. Create a user account system which is presented on load of the software if the user is not logged in. (Deletes all songs on the Disk when you log out and redownloads all the songs on login.) (Now in development ) this should also be an optional feature.
