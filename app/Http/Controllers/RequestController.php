@@ -39,9 +39,15 @@ class RequestController extends BaseController
     public function getShuffle() {
         /** @var Option $shuffle */
         $shuffle = Option::where('name', 'shuffle')->first();
-        return [
-            'state' => $shuffle->value
-        ];
+        if ($shuffle) {
+            return [
+                'state' => $shuffle->value
+            ];
+        } else {
+            return [
+                'state' => 'false'
+            ];
+        }
     }
 
     /**
@@ -135,20 +141,55 @@ class RequestController extends BaseController
      */
     public function playFile(Request $request) {
 
-        /** @var URLRequest $alreadyPlaying */
-        $alreadyPlaying = URLRequest::where('status', 'Playing')->first();
-        if ($alreadyPlaying) {
-            return [
-                'type' => 'Warning',
-                'content' => $alreadyPlaying->fileName . " is playing please wait until the file is finished."
-            ];
-        }
-
         $fileName = $request->get('fileName');
 
         $output = $this->playFromFileName($fileName);
 
         return "<pre>$output</pre>";
+
+    }
+
+    /**
+     * Skip to the next file in the queue.
+     *
+     * @return \Exception|string
+     */
+    public function skipToNext() {
+
+        try {
+            /** @var URLRequest $playing */
+            $playing = $this->getPlaying();
+            /** @var URLRequest $next */
+            $next = $playing->next();
+            $this->playFromFileName($next->fileName);
+
+            return 'true';
+
+        } catch (\Exception $e) {
+            return $e;
+        }
+
+    }
+
+    /**
+     * Skip to the previous file in the queue.
+     *
+     * @return \Exception|string
+     */
+    public function skipToPrevious() {
+
+        try {
+            /** @var URLRequest $playing */
+            $playing = $this->getPlaying();
+            /** @var URLRequest $next */
+            $previous = $playing->previous();
+            $this->playFromFileName($previous->fileName);
+
+            return 'true';
+
+        } catch (\Exception $e) {
+            return $e;
+        }
 
     }
 
@@ -215,6 +256,7 @@ class RequestController extends BaseController
      * @param $fileName
      */
     private function stop($fileName) {
+        $this->unsetPaused();
         exec('sudo echo "quit" > /tmp/control');
 
         /** @var URLRequest $record */
@@ -228,7 +270,7 @@ class RequestController extends BaseController
      * @param Request $request
      * @return string
      */
-    public function pauseFile(Request $request) {
+    public function setPaused(Request $request) {
         $fileName = $request->get('fileName');
         exec('sudo echo "pause" > /tmp/control');
         /** @var URLRequest $record */
@@ -241,6 +283,39 @@ class RequestController extends BaseController
         $record->save();
 
         return $record->status;
+    }
+
+    /**
+     * Unsets the paused record in the database.
+     */
+    public function unsetPaused() {
+        /** @var URLRequest $record */
+        $record = URLRequest::where('status', 'Paused')->first();
+        if (count($record) > 0) {
+            $record->status = 'Played';
+            $record->save();
+        }
+    }
+
+    /**
+     * Get paused record from the database.
+     * @return mixed
+     */
+    public function getPaused() {
+        return URLRequest::where('status', 'Paused')->first()->toArray();
+    }
+
+    /**
+     * Return boolean of the state of the database.
+     * @return mixed
+     */
+    public function isPaused() {
+        $record = URLRequest::where('status', 'Paused')->first();
+        if (!empty($record)) {
+            return 'true';
+        } else {
+            return 'false';
+        }
     }
 
     /**
@@ -275,6 +350,13 @@ class RequestController extends BaseController
      * @return string
      */
     private function playFromFileName($fileName) {
+
+        /** @var URLRequest $alreadyPlaying */
+        $alreadyPlaying = URLRequest::where('status', 'Playing')->first();
+        if ($alreadyPlaying) {
+            //Allow user to play any file in the queue at any time!
+            $this->stop($alreadyPlaying->fileName);
+        }
 
         /** @var URLRequest $record */
         $record = URLRequest::where('fileName', $fileName)->first();
