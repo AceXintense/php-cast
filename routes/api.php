@@ -23,7 +23,6 @@ Route::get('/getShuffle', 'RequestController@getShuffle');
 
 //Gets and sets the paused record in the database.
 Route::post('/setPaused', 'RequestController@setPaused');
-Route::get('/isPaused', 'RequestController@isPaused');
 //Check to see if there is a paused file in the database.
 Route::get('/isPaused', 'RequestController@isPaused');
 
@@ -39,9 +38,9 @@ Route::get('/removeFile', 'RequestController@removeFile');
 Route::post('/addRequest', 'RequestController@addRequest');
 
 //Skip to the next song in the queue.
-Route::post('/skipToNext', 'RequestController@skipToNext');
+Route::put('/skipToNext', 'RequestController@skipToNext');
 //Skip to the previous song in the queue.
-Route::post('/skipToPrevious', 'RequestController@skipToPrevious');
+Route::put('/skipToPrevious', 'RequestController@skipToPrevious');
 
 //Changes the volume on the driver on the server.
 Route::post('/setVolume', 'RequestController@setVolume');

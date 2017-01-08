@@ -6,6 +6,11 @@ var $messageIcon = $('.icon-message');
 
 var shuffle = false;
 
+var previousValues = {
+    'volume': 0,
+    'queue': []
+};
+
 var spinner =
     '<div class="spinner">' +
         '<div class="double-bounce1"></div>' +
@@ -78,7 +83,7 @@ function isPaused() {
 $('#previous').click(function () {
     $.ajax({
         url: "/api/skipToPrevious",
-        type: "POST",
+        type: "PUT",
         success: function () {
             refresh()
         }
@@ -101,7 +106,7 @@ $('#pause').click(function () {
 $('#next').click(function () {
     $.ajax({
         url: "/api/skipToNext",
-        type: "POST",
+        type: "PUT",
         success: function () {
             refresh()
         }
@@ -217,8 +222,12 @@ function getVolume() {
         url: "/api/getVolume",
         type: "GET",
         success: function(data) {
-            $('#volume').val(parseInt(data));
-            $('#volume-text').text(parseInt(data) + '%');
+            var newVolume = parseInt(data);
+            if (newVolume != previousValues.volume) {
+                $('#volume').val(newVolume);
+                $('#volume-text').text(newVolume + '%');
+            }
+            previousValues.volume = parseInt(data);
         }
     });
 }
@@ -307,4 +316,4 @@ function messageUpdate(data) {
 
 refresh();
 
-setInterval(refresh, 60 * 50);
+setInterval(refresh, 6000);

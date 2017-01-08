@@ -155,20 +155,11 @@ class RequestController extends BaseController
      * @return \Exception|string
      */
     public function skipToNext() {
-
-        try {
-            /** @var URLRequest $playing */
-            $playing = $this->getPlaying();
-            /** @var URLRequest $next */
-            $next = $playing->next();
-            $this->playFromFileName($next->fileName);
-
-            return 'true';
-
-        } catch (\Exception $e) {
-            return $e;
-        }
-
+        /** @var URLRequest $playing */
+        $playing = $this->getPlaying();
+        /** @var URLRequest $next */
+        $next = $playing->next();
+        $this->playFromFileName($next->fileName);
     }
 
     /**
@@ -177,20 +168,11 @@ class RequestController extends BaseController
      * @return \Exception|string
      */
     public function skipToPrevious() {
-
-        try {
-            /** @var URLRequest $playing */
-            $playing = $this->getPlaying();
-            /** @var URLRequest $next */
-            $previous = $playing->previous();
-            $this->playFromFileName($previous->fileName);
-
-            return 'true';
-
-        } catch (\Exception $e) {
-            return $e;
-        }
-
+        /** @var URLRequest $playing */
+        $playing = $this->getPlaying();
+        /** @var URLRequest $next */
+        $previous = $playing->previous();
+        $this->playFromFileName($previous->fileName);
     }
 
     /**
@@ -295,14 +277,6 @@ class RequestController extends BaseController
             $record->status = 'Played';
             $record->save();
         }
-    }
-
-    /**
-     * Get paused record from the database.
-     * @return mixed
-     */
-    public function getPaused() {
-        return URLRequest::where('status', 'Paused')->first()->toArray();
     }
 
     /**
