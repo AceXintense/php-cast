@@ -6,6 +6,11 @@ var $messageIcon = $('.icon-message');
 
 var shuffle = false;
 
+var previousValues = {
+    'volume': 0,
+    'queue': []
+};
+
 var spinner =
     '<div class="spinner">' +
         '<div class="double-bounce1"></div>' +
@@ -24,6 +29,7 @@ var playing = function () {
 
 var refresh = function () {
     playing();
+    isPaused();
     getShuffleMode();
     getVolume();
     $.ajax({
@@ -54,20 +60,55 @@ var refresh = function () {
     });
 };
 
+function isPaused() {
+    $.ajax({
+        url: "/api/isPaused",
+        type: "GET",
+        success: function (data) {
+            if (data == 'false') {
+                $('#pause').removeClass('btn-danger').addClass('btn-default');
+                $('#previous').removeAttr('disabled');
+                $('#next').removeAttr('disabled');
+                return false;
+            } else {
+                $('#pause').removeClass('btn-default').addClass('btn-danger');
+                $('#previous').attr('disabled', 'disabled');
+                $('#next').attr('disabled', 'disabled');
+                return true;
+            }
+        }
+    });
+}
+
+$('#previous').click(function () {
+    $.ajax({
+        url: "/api/skipToPrevious",
+        type: "PUT",
+        success: function () {
+            refresh()
+        }
+    });
+});
+
 $('#pause').click(function () {
     $.ajax({
-        url: "/api/pauseFile",
+        url: "/api/setPaused",
         data: {
           fileName: $('#playing').text()
         },
-        type: "GET",
-        success: function (data) {
-            if (data == 'Playing') {
-                $('#pause').removeClass('btn-danger').addClass('btn-default');
-            } else {
-                $('#pause').removeClass('btn-default').addClass('btn-danger');
-            }
+        type: "POST",
+        success: function () {
+            isPaused();
+        }
+    });
+});
 
+$('#next').click(function () {
+    $.ajax({
+        url: "/api/skipToNext",
+        type: "PUT",
+        success: function () {
+            refresh()
         }
     });
 });
@@ -95,7 +136,7 @@ $('body').on("click", ".delete-track",function (){
 //noinspection JSJQueryEfficiency
 $('body').on("click", ".play-file",function (){
     var fileName = $(this).prev().text();
-    var $button = $(this).append(spinner);
+    $(this).append(spinner);
     $(this).find('i').remove();
     $(this).attr('disabled', 'disabled');
     $.ajax({
@@ -103,12 +144,7 @@ $('body').on("click", ".play-file",function (){
         data: {
             fileName: fileName
         },
-        type: "GET",
-        success: function(data) {
-            $button.empty();
-            $(this).removeAttr('disabled');
-            messageUpdate(data);
-        }
+        type: "POST"
     });
 });
 
@@ -186,8 +222,12 @@ function getVolume() {
         url: "/api/getVolume",
         type: "GET",
         success: function(data) {
-            $('#volume').val(parseInt(data));
-            $('#volume-text').text(parseInt(data) + '%');
+            var newVolume = parseInt(data);
+            if (newVolume != previousValues.volume) {
+                $('#volume').val(newVolume);
+                $('#volume-text').text(newVolume + '%');
+            }
+            previousValues.volume = parseInt(data);
         }
     });
 }
@@ -199,9 +239,17 @@ function getShuffleMode() {
         success: function(data) {
             if (data['state'] == 1) {
                 $('#shuffle').removeClass('btn-danger').addClass('btn-success');
+                if (!isPaused()) {
+                    $('#previous').attr('disabled', 'disabled');
+                    $('#next').attr('disabled', 'disabled');
+                }
                 shuffle = true;
             } else {
                 $('#shuffle').removeClass('btn-success').addClass('btn-danger');
+                if (!isPaused()) {
+                    $('#previous').removeAttr('disabled');
+                    $('#next').removeAttr('disabled');
+                }
                 shuffle = false;
             }
         }
@@ -268,4 +316,4 @@ function messageUpdate(data) {
 
 refresh();
 
-setInterval(refresh, 60 * 50);
+setInterval(refresh, 6000);

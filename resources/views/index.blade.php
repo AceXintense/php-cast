@@ -36,7 +36,9 @@
 			<h1>Cast Control</h1>
 			
 			<p>Now Playing : <span id="playing"> Nothing is playing.. </span></p>
-			<button class="btn btn-default" id="pause">Pause</button>
+			<button class="btn btn-default" id="previous"><i class="fa fa-backward" aria-hidden="true"></i></button>
+			<button class="btn btn-default" id="pause"><i class="fa fa-pause" aria-hidden="true"></i></button>
+			<button class="btn btn-default" id="next"><i class="fa fa-forward" aria-hidden="true"></i></button>
 			
 			<div class="playback">
                 <label for="volume">Volume <span id="volume-text">%</span></label>
