@@ -44,6 +44,8 @@
                 <label for="volume">Volume <span id="volume-text">%</span></label>
                 <input type="range" id="volume" value="0" name="volume" min="0" max="100">
 				<button class="btn btn-danger" id="shuffle"><i class="fa fa-random" aria-hidden="true"></i></button>
+				<button class="btn btn-danger" id="play-through"><i class="fa fa-long-arrow-right" aria-hidden="true"></i></button>
+				<button class="btn" id="play-direction"><i class="fa fa-long-arrow-down" aria-hidden="true"></i></button>
 				<button class="btn btn-default" id="clear-queue">Clear Queue</button>
 			</div>
 
@@ -52,7 +54,7 @@
 
 			</div>
 		</div>
-		<div class="btn btn-danger" id="reset">Reset Environment</div>
+		<button class="btn btn-danger" id="reset"><i class="fa fa-refresh" aria-hidden="true"></i> Reset Environment</button>
 	</div>
   </div>
 

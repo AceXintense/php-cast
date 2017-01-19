@@ -4,6 +4,8 @@ var $messageType = $('#type');
 var $messageContent = $('#content');
 var $messageIcon = $('.icon-message');
 
+var playThough = false;
+var playThoughDirection = 'down';
 var shuffle = false;
 var run = false;
 var difference = false;
@@ -19,15 +21,16 @@ var spinner =
         '<div class="double-bounce2"></div>' +
     '</div>';
 
-var playing = function () {
+function getPlaying() {
     $.ajax({
         url: "/api/getPlaying",
         type: "GET",
         success: function(data) {
-            $('#playing').text(data['fileName']);
+            console.log(data);
+            $('#playing').text(data);
         }
     });
-};
+}
 
 function isQueueDifferent() {
     $.ajax({
@@ -46,7 +49,20 @@ function isQueueDifferent() {
     });
 }
 
+/*
+ * All the Get API calls.
+ */
+function getAPICalls() {
+    getPlaying();
+    getShuffle();
+    getPlayThrough();
+    getPlayThroughDirection();
+    getVolume();
+}
+
 var refresh = function () {
+
+    getAPICalls();
 
     if (run) {
         isQueueDifferent();
@@ -83,12 +99,28 @@ var refresh = function () {
         });
     }
 
-    playing();
+
+    enabledButtons();
+
     isPaused();
-    getShuffleMode();
-    getVolume();
 
 };
+
+refresh();
+
+function enabledButtons() {
+    if (shuffle) {
+        $('#play-through').attr('disabled', 'disabled');
+        $('#play-direction').hide();
+    } else if (playThough) {
+        $('#shuffle').attr('disabled', 'disabled');
+        $('#play-direction').show();
+    } else {
+        $('#play-direction').hide();
+        $('#play-through').removeAttr('disabled');
+        $('#shuffle').removeAttr('disabled');
+    }
+}
 
 function isPaused() {
     $.ajax({
@@ -115,7 +147,7 @@ $('#previous').click(function () {
         url: "/api/skipToPrevious",
         type: "PUT",
         success: function () {
-            refresh()
+            refresh();
         }
     });
 });
@@ -124,7 +156,7 @@ $('#pause').click(function () {
     $.ajax({
         url: "/api/setPaused",
         data: {
-          fileName: $('#playing').text()
+          fileName: $('#getPlaying').text()
         },
         type: "POST",
         success: function () {
@@ -203,12 +235,12 @@ $('#clear-queue').click(function () {
     $.ajax({
         url: "/api/clearQueue",
         data: {
-            fileName: $('#playing').text()
+            fileName: $('#getPlaying').text()
         },
         type: "GET",
         success: function(data) {
             $(this).removeAttr('disabled');
-            $('#playing').text(' Nothing is playing.. ');
+            $('#getPlaying').text(' Nothing is getPlaying.. ');
             messageUpdate(data);
         }
     });
@@ -239,7 +271,7 @@ $('#volume').change(function() {
         type: "POST",
         success: function() {
             $('#volume-text').text($('#volume').val() + '%');
-            getShuffleMode();
+            getShuffle();
         }
     });
 });
@@ -262,12 +294,50 @@ function getVolume() {
     });
 }
 
-function getShuffleMode() {
+function toggleDirection(data) {
+    if (data == 'up') {
+        $('#play-direction i').removeClass('fa-long-arrow-down');
+        $('#play-direction i').addClass('fa-long-arrow-up');
+        playThoughDirection = 'down';
+    } else {
+        $('#play-direction i').addClass('fa-long-arrow-down');
+        $('#play-direction i').removeClass('fa-long-arrow-up');
+        playThoughDirection = 'up';
+    }
+}
+
+function getPlayThroughDirection() {
+    $.ajax({
+        url: "/api/getPlayThroughDirection",
+        type: "GET",
+        success: function(data) {
+            toggleDirection(data);
+        }
+    });
+}
+
+function getPlayThrough() {
+    $.ajax({
+        url: "/api/getPlayThrough",
+        type: "GET",
+        success: function(data) {
+            if (data == 'true') {
+                $('#play-through').removeClass('btn-danger').addClass('btn-success');
+                playThough = true;
+            } else {
+                $('#play-through').removeClass('btn-success').addClass('btn-danger');
+                playThough = false;
+            }
+        }
+    });
+}
+
+function getShuffle() {
     $.ajax({
         url: "/api/getShuffle",
         type: "GET",
         success: function(data) {
-            if (data['state'] == 1) {
+            if (data == 'true') {
                 $('#shuffle').removeClass('btn-danger').addClass('btn-success');
                 if (!isPaused()) {
                     $('#previous').attr('disabled', 'disabled');
@@ -307,15 +377,34 @@ $('#request-add').click(function (){
 });
 
 $('#shuffle').click(function () {
-    shuffle = !shuffle;
     $.ajax({
-        url: "/api/setShuffle",
+        url: "/api/toggleShuffle",
         type: "POST",
-        data: {
-            toggle: shuffle
-        },
         success: function() {
-            getShuffleMode();
+            shuffle = !shuffle;
+            enabledButtons();
+        }
+    });
+});
+
+$('#play-through').click(function () {
+    $.ajax({
+        url: "/api/togglePlayThrough",
+        type: "POST",
+        success: function() {
+            playThough = !playThough;
+            enabledButtons();
+        }
+    });
+});
+
+$('#play-direction').click(function () {
+    $.ajax({
+        url: "/api/togglePlayThroughDirection",
+        type: "POST",
+        success: function () {
+            getPlayThroughDirection();
+            toggleDirection(playThoughDirection);
         }
     });
 });
@@ -354,7 +443,5 @@ function messageUpdate(data) {
     $messageContent.text(data['content']);
     refresh();
 }
-
-refresh();
 
 setInterval(refresh, 2000);

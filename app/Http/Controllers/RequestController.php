@@ -19,11 +19,16 @@ class RequestController extends BaseController
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
     /**
-     * Get the playing song.
-     * @return array
+     * Get the getPlaying song.
+     * @return string
      */
     public function getPlaying() {
-        return URLRequest::where('status', 'Playing')->orWhere('status', 'Paused')->first();
+
+        /** @var URLRequest $playing */
+        $playing = URLRequest::where('status', 'Playing')->orWhere('status', 'Paused')->first();
+        //Remove the .mp3 extension from the filename.
+        return Utilities::getInstance()->removeExtension($playing->fileName);
+
     }
 
     /**
@@ -37,43 +42,64 @@ class RequestController extends BaseController
 
     /**
      * Gets the value of shuffle from the database.
-     * @return array
+     * @return boolean
      */
     public function getShuffle() {
 
-        /** @var Option $shuffle */
-        $shuffle = Option::where('name', 'shuffle')->first();
-        if ($shuffle) { //Shuffle is true return the value back to the front-end.
-            return [
-                'state' => $shuffle->value
-            ];
-        }
-
-        //Returns the state as false.
-        return [
-            'state' => 'false'
-        ];
+        $MPlayer = MPlayerWrapper::getInstance();
+        return $MPlayer->getShuffle() ? 'true' : 'false';
 
     }
 
     /**
-     * Sets shuffle mode.
+     * Toggles shuffle mode.
      */
-    public function setShuffle() {
+    public function toggleShuffle() {
 
-        /** @var Option $shuffle */
-        //Check to see if we have shuffle in the Options table.
-        $shuffle = Option::where('name', 'shuffle')->first();
-        if (is_null($shuffle)) {
-            $newShuffle = new Option();
-            $newShuffle->name = 'shuffle';
-            $newShuffle->value = true;
-            $newShuffle->save();
-        } else {
-            //Toggle the value from true to false
-            $shuffle->value = ($shuffle->value = !$shuffle->value);
-            $shuffle->save();
-        }
+        $MPlayer = MPlayerWrapper::getInstance();
+        $MPlayer->toggleShuffle();
+
+    }
+
+    /**
+     * Gets the value of play_through from the database.
+     * @return boolean
+     */
+    public function getPlayThrough() {
+
+        $MPlayer = MPlayerWrapper::getInstance();
+        return $MPlayer->getPlayThrough() ? 'true' : 'false';
+
+    }
+
+    /**
+     * Toggles play_through mode.
+     */
+    public function togglePlayThrough() {
+
+        $MPlayer = MPlayerWrapper::getInstance();
+        $MPlayer->togglePlayThrough();
+
+    }
+
+    /**
+     * Gets the value of play_through_direction from the database.
+     * @return boolean
+     */
+    public function getPlayThroughDirection() {
+
+        $MPlayer = MPlayerWrapper::getInstance();
+        return $MPlayer->getPlayThroughDirection();
+
+    }
+
+    /**
+     * Toggles play_through_direction.
+     */
+    public function togglePlayThroughDirection() {
+
+        $MPlayer = MPlayerWrapper::getInstance();
+        $MPlayer->togglePlayThroughDirection();
 
     }
 
@@ -267,7 +293,7 @@ class RequestController extends BaseController
 
         //Get the MPlayerWrapper instance so we can call functions on it.
         $MPlayer = MPlayerWrapper::getInstance();
-        $MPlayer->stopFile($fileName); //Stop the file that is currently playing.
+        $MPlayer->stopFile($fileName); //Stop the file that is currently getPlaying.
 
         return [
             'type' => 'Success',
@@ -300,10 +326,7 @@ class RequestController extends BaseController
 
         //Get the MPlayerWrapper instance so we can call functions on it.
         $MPlayer = MPlayerWrapper::getInstance();
-        if ($MPlayer->isPaused()) {//Check to see if the record is paused.
-            return 'true';
-        }
-        return 'false'; //Return false if there are no paused records.
+        return $MPlayer->isPaused() ? 'true' : 'false';
 
     }
 

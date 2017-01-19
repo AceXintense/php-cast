@@ -79,8 +79,11 @@ h1 {
     float: right; }
 
 #reset {
-  margin-top: 20px;
-  margin-bottom: 20px; }
+  margin-top: 10px;
+  margin-bottom: 10px; }
+
+#play-direction {
+  background-color: transparent; }
 
 .control .playback {
   padding: 5px 0; }

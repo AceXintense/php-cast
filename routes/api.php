@@ -18,13 +18,20 @@ Route::get('/getRequestedURLs', 'RequestController@getRequestedURLs');
 Route::get('/getPlaying', 'RequestController@getPlaying');
 
 //Toggles shuffling of the Queue and plays one song after another.
-Route::post('/setShuffle', 'RequestController@setShuffle');
 Route::get('/getShuffle', 'RequestController@getShuffle');
+Route::post('/toggleShuffle', 'RequestController@toggleShuffle');
+
+//Toggles play through of the Queue and plays one song after another.
+Route::get('/getPlayThrough', 'RequestController@getPlayThrough');
+Route::post('/togglePlayThrough', 'RequestController@togglePlayThrough');
+
+//Toggles play through of the Queue and plays one song after another.
+Route::get('/getPlayThroughDirection', 'RequestController@getPlayThroughDirection');
+Route::post('/togglePlayThroughDirection', 'RequestController@togglePlayThroughDirection');
 
 //Gets and sets the paused record in the database.
+Route::get('/isPaused', 'RequestController@isPaused'); //Check to see if there is a paused file in the database.
 Route::post('/setPaused', 'RequestController@setPaused');
-//Check to see if there is a paused file in the database.
-Route::get('/isPaused', 'RequestController@isPaused');
 
 //Plays the requested file.
 Route::post('/playFile', 'RequestController@playFile');
@@ -41,12 +48,11 @@ Route::post('/addRequest', 'RequestController@addRequest');
 
 //Skip to the next song in the queue.
 Route::put('/skipToNext', 'RequestController@skipToNext');
-//Skip to the previous song in the queue.
-Route::put('/skipToPrevious', 'RequestController@skipToPrevious');
+Route::put('/skipToPrevious', 'RequestController@skipToPrevious'); //Skip to the previous song in the queue.
 
 //Changes the volume on the driver on the server.
-Route::post('/setVolume', 'RequestController@setVolume');
 Route::get('/getVolume', 'RequestController@getVolume');
+Route::post('/setVolume', 'RequestController@setVolume');
 
 //Resets all PHP and the Database back to default.
 Route::get('/resetEnvironment', 'RequestController@resetEnvironment');

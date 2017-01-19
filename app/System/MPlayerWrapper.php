@@ -16,6 +16,9 @@ class MPlayerWrapper {
 
     private static $instance;
     private static $shuffle;
+    private static $playThrough;
+    private static $playThroughDirection;
+    private $stopping;
     private $table;
 
     /**
@@ -50,12 +53,17 @@ class MPlayerWrapper {
         return URLRequest::where('status', 'Playing')->first();
     }
 
+    /**
+     * Update the fileName and the status.
+     * @param $fileName
+     * @param $status
+     */
     private function updateFileRecord($fileName, $status) {
 
         /** @var URLRequest $record */
         $record = URLRequest::where('fileName', $fileName)->first();
 
-        if ($record) {
+        if ($record) {//Check to see if the record exists.
             $record->status = $status;
             $record->save();
         }
@@ -66,14 +74,73 @@ class MPlayerWrapper {
      * Get the shuffle status.
      * @return bool
      */
-    private function getShuffle() {
+    public function getShuffle() {
         /** @var Option $shuffle */
         $shuffle = Option::where('name', 'shuffle')->first();
-        return (boolean) $shuffle->value;
+        return (boolean) $shuffle->value; //Return the value.
+
     }
 
     /**
-     * Returns true if there is a file playing.
+     * Toggles shuffle in the database.
+     */
+    public function toggleShuffle() {
+        /** @var Option $shuffle */
+        $shuffle = Option::where('name', 'shuffle')->first(); //Check to see if we have shuffle in the Options table.
+        $shuffle->value = ($shuffle->value = !$shuffle->value); //Toggle the value from true to false
+        $shuffle->save();
+
+    }
+
+    /**
+     * Get the play_through status.
+     * @return bool
+     */
+    public function getPlayThrough() {
+        /** @var Option $playThrough */
+        $playThrough = Option::where('name', 'play_through')->first();
+        return (boolean) $playThrough->value; //Return the value.
+
+    }
+
+    /**
+     * Toggles play_through in the database.
+     */
+    public function togglePlayThrough() {
+        /** @var Option $playThrough */
+        $playThrough = Option::where('name', 'play_through')->first(); //Check to see if we have play_through in the Options table.
+        $playThrough->value = ($playThrough->value = !$playThrough->value); //Toggle the value from true to false
+        $playThrough->save();
+
+    }
+
+    /**
+     * Get the play_through_direction from the database.
+     * @return string
+     */
+    public function getPlayThroughDirection() {
+        /** @var Option $playThroughDirection */
+        $playThroughDirection = Option::where('name', 'play_through_direction')->first();
+        return $playThroughDirection->value; //Return the value.
+
+    }
+
+    /**
+     * Toggles the play_through_direction in the database.
+     */
+    public function togglePlayThroughDirection() {
+        /** @var Option $playThroughDirection */
+        $playThroughDirection = Option::where('name', 'play_through_direction')->first(); //Check to see if we have play_through in the Options table.
+        if ($playThroughDirection->value === 'up') { //If the value is up then set the value to down.
+            $playThroughDirection->value = 'down';
+        } else { //Toggle the oposite.
+            $playThroughDirection->value = 'up';
+        }
+        $playThroughDirection->save();
+    }
+
+    /**
+     * Returns true if there is a file getPlaying.
      */
     private function isAlreadyPlaying() {
         return (boolean) URLRequest::where('status', 'Playing')->first();
@@ -106,19 +173,14 @@ class MPlayerWrapper {
     /**
      * Play the file from MPlayer using the fileName parameter.
      * @param $fileName
+     * @return bool
      */
     public function playFile($fileName) {
-
-        self::$shuffle = $this->getShuffle(); //Get the shuffle status.
-        if (self::$shuffle) { //Check to see if shuffle is active.
-            $fileName = URLRequest::all()->random(); //Get a random record in the table.
-            $fileName = $fileName->fileName; //Override the fileName variable with the random records.
-        }
 
         //Create the control pipe file if there is not one present.
         $this->initializeControlFile();
 
-        //Check to see if there is already a file playing if so stop it!
+        //Check to see if there is already a file getPlaying if so stop it!
         if ($this->isAlreadyPlaying()) {
             $this->stopPlayingFiles(); //Stop all playback from the MPlayer wrapper.
         }
@@ -129,18 +191,39 @@ class MPlayerWrapper {
         shell_exec("sudo mplayer -input file=/tmp/control /Stream/\"$fileName\"");
         $this->updateFileRecord($fileName, 'Played'); //Update the file status to played in the database.
 
+        if ($this->stopping) {//Stopping is true then stop execution.
+            $this->stopping = false;
+            return true; //Return true to stop execution.
+        }
+
+        self::$shuffle = $this->getShuffle(); //Get the shuffle status.
+        if (self::$shuffle) { //Check to see if shuffle is active.
+            $fileName = URLRequest::all()->random(); //Get a random record in the table.
+            $this->playFile($fileName);
+        }
+
+        self::$playThrough = $this->getPlayThrough(); //Get the playThough status.
+        if (self::$playThrough) { //Check to see if play_through is active.
+            self::$playThroughDirection = $this->getPlayThroughDirection();
+            if (self::$playThroughDirection == 'up') { //If the value up then go up the list.
+                $this->playPreviousFileFromPreviousFileName($fileName);
+            }//Else go down the list.
+            $this->playNextFileFromPreviousFileName($fileName);
+        }
+
     }
 
     /**
-     * Stop MPlayers playback it also resets the playing files in the database.
+     * Stop MPlayers playback it also resets the getPlaying files in the database.
      */
     private function stopPlayingFiles() {
 
         //Stop the MPlayer instance via the control named pipe.
         exec('sudo echo "quit" > /tmp/control');
+        $this->stopping = true;
 
         /** @var URLRequest $playingFile */
-        $playingFile = $this->getPlayingFile(); //Get the currently playing file.
+        $playingFile = $this->getPlayingFile(); //Get the currently getPlaying file.
         $this->updateFileRecord($playingFile->fileName, 'Played'); //Update the file status to played in the database.
 
     }
@@ -153,7 +236,56 @@ class MPlayerWrapper {
 
         //Stop the MPlayer instance via the control named pipe.
         exec('sudo echo "quit" > /tmp/control');
+        $this->stopping = true;
         $this->updateFileRecord($fileName, 'Played'); //Update the file status to played in the database.
+
+    }
+
+    /**
+     * Play the next file in the queue from the previously played fileName.
+     * @param $fileName
+     */
+    public function playNextFileFromPreviousFileName($fileName) {
+
+        $index = 0;
+
+        //Get all the requests from the table.
+        $records = URLRequest::all()->toArray();
+
+        foreach ($records as $record) {
+            $index ++; //Increment $index as this will indicate where we are in the array.
+            if ($record['fileName'] == $fileName) { //Check to see if the fileName matches the one in the array.
+                $index += 1; //Minus one to get the next request in the array.
+                $nextFile = $records[$index - 1]['fileName']; //Get the next file from the array -1 again to fix the 0, 1 issue.
+            }
+        }
+
+        //Play the next file in the queue.
+        $this->playFile($nextFile);
+
+    }
+
+    /**
+     * Play the previous file in the queue from the previously played fileName.
+     * @param $fileName
+     */
+    public function playPreviousFileFromPreviousFileName($fileName) {
+
+        $index = 0;
+
+        //Get all the requests from the table.
+        $records = URLRequest::all()->toArray();
+
+        foreach ($records as $record) {
+            $index ++; //Increment $index as this will indicate where we are in the array.
+            if ($record['fileName'] == $fileName) { //Check to see if the fileName matches the one in the array.
+                $index -= 1; //Minus one to get the previous request in the array.
+                $previousFile = $records[$index - 1]['fileName']; //Get the previous file from the array -1 again to fix the 0, 1 issue.
+            }
+        }
+
+        //Play the previous file in the queue.
+        $this->playFile($previousFile);
 
     }
 
@@ -164,7 +296,7 @@ class MPlayerWrapper {
 
         $index = 0;
         /** @var URLRequest $file */
-        $file = $this->getPlayingFile(); //Get the file that is currently playing.
+        $file = $this->getPlayingFile(); //Get the file that is currently getPlaying.
 
         //Get all the requests from the table.
         $records = URLRequest::all()->toArray();
@@ -189,7 +321,7 @@ class MPlayerWrapper {
 
         $index = 0;
         /** @var URLRequest $file */
-        $file = $this->getPlayingFile(); //Get the file that is currently playing.
+        $file = $this->getPlayingFile(); //Get the file that is currently getPlaying.
 
         //Get all the requests from the table.
         $records = URLRequest::all()->toArray();
@@ -208,14 +340,14 @@ class MPlayerWrapper {
     }
 
     /**
-     * Resets all the records in the database and stops playing content.
+     * Resets all the records in the database and stops getPlaying content.
      */
     public function reset() {
 
         $this->stopPlayingFiles(); //Stop all playback from all the records.
 
         /** @var URLRequest $playingFile */
-        $playingFile = $this->getPlayingFile(); //Get the playing file.
+        $playingFile = $this->getPlayingFile(); //Get the getPlaying file.
         $this->updateFileRecord($playingFile->fileName, 'Played'); //Reset the playingFile to have the status of played.
 
     }
@@ -256,7 +388,7 @@ class MPlayerWrapper {
     }
 
     /**
-     * Set the file to paused or to playing all dependant on the current status.
+     * Set the file to paused or to getPlaying all dependant on the current status.
      * @param $fileName
      * @return string
      */
@@ -281,7 +413,7 @@ class MPlayerWrapper {
     }
 
     /**
-     * Returns true if the playback is paused and false if the playback is playing.
+     * Returns true if the playback is paused and false if the playback is getPlaying.
      * @return bool
      */
     public function isPaused() {
