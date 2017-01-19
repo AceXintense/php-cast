@@ -79,7 +79,8 @@ h1 {
     float: right; }
 
 #reset {
-  margin-top: 20px; }
+  margin-top: 20px;
+  margin-bottom: 20px; }
 
 .control .playback {
   padding: 5px 0; }
