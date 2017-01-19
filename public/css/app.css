@@ -78,6 +78,9 @@ h1 {
   .message #close {
     float: right; }
 
+#reset {
+  margin-top: 20px; }
+
 .control .playback {
   padding: 5px 0; }
   .control .playback #clear-queue {

@@ -5,6 +5,8 @@ var $messageContent = $('#content');
 var $messageIcon = $('.icon-message');
 
 var shuffle = false;
+var run = false;
+var difference = false;
 
 var previousValues = {
     'volume': 0,
@@ -27,37 +29,65 @@ var playing = function () {
     });
 };
 
+function isQueueDifferent() {
+    $.ajax({
+        url: "/api/isQueueDifferent",
+        type: "GET",
+        data: {
+            'queue': previousValues.queue
+        },
+        success: function (data) {
+            if (data['boolean'] == 'true') {
+                difference = true;
+            } else {
+                difference = false;
+            }
+        }
+    });
+}
+
 var refresh = function () {
+
+    if (run) {
+        isQueueDifferent();
+    }
+
+    if (difference || !run) {
+        run = true;
+        $.ajax({
+            url: "/api/getRequestedURLs",
+            type: "GET",
+            success: function (data) {
+                previousValues.queue = data;
+                $(".queue").empty();
+                $.each(data, function (i, item) {
+                    if (item.status == 'Playing' || item.status == 'Paused') {
+                        $(".queue").append(
+                            '<div class="record row ' + item.status + '">' +
+                            '<div class="col-xs-1"></div>' +
+                            '<p class="col-xs-8">' + item.fileName + '</p>' +
+                            '<button class="btn btn-default col-xs-2 stop-file"><i class="fa fa-stop" aria-hidden="true"></i></button>' +
+                            '</div>'
+                        );
+                    } else {
+                        $(".queue").append(
+                            '<div class="record row ' + item.status + '">' +
+                            '<button class="btn btn-danger col-xs-2 col-xs-offset-1 btn-outline delete-track"><i class="fa fa-times" aria-hidden="true"></i></button>' +
+                            '<p class="col-xs-6">' + item.fileName + '</p>' +
+                            '<button class="btn btn-default col-xs-2 play-file"><i class="fa fa-play" aria-hidden="true"></i></button>' +
+                            '</div>'
+                        );
+                    }
+                });
+            }
+        });
+    }
+
     playing();
     isPaused();
     getShuffleMode();
     getVolume();
-    $.ajax({
-        url: "/api/getRequestedURLs",
-        type: "GET",
-        success: function(data) {
-            $(".queue").empty();
-            $.each(data, function(i, item){
-                if (item.status == 'Playing' || item.status == 'Paused') {
-                    $(".queue").append(
-                        '<div class="record row ' + item.status + '">' +
-                            '<div class="col-xs-1"></div>' +
-                            '<p class="col-xs-8">' + item.fileName + '</p>' +
-                            '<button class="btn btn-default col-xs-2 stop-file"><i class="fa fa-stop" aria-hidden="true"></i></button>' +
-                        '</div>'
-                    );
-                } else {
-                    $(".queue").append(
-                        '<div class="record row ' + item.status + '">' +
-                            '<button class="btn btn-danger col-xs-2 col-xs-offset-1 btn-outline delete-track"><i class="fa fa-times" aria-hidden="true"></i></button>' +
-                            '<p class="col-xs-6">' + item.fileName + '</p>' +
-                            '<button class="btn btn-default col-xs-2 play-file"><i class="fa fa-play" aria-hidden="true"></i></button>' +
-                        '</div>'
-                    );
-                }
-            });
-        }
-    });
+
 };
 
 function isPaused() {
@@ -290,6 +320,17 @@ $('#shuffle').click(function () {
     });
 });
 
+$('#reset').click(function () {
+    $.ajax({
+        url: "/api/resetEnvironment",
+        type: "GET",
+        success: function() {
+            refresh();
+        }
+
+    });
+});
+
 /**
  * Gives back the output from the API in a message on the front-end.
  * @param data
@@ -316,4 +357,4 @@ function messageUpdate(data) {
 
 refresh();
 
-setInterval(refresh, 6000);
+setInterval(refresh, 2000);

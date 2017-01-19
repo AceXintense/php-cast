@@ -14,15 +14,4 @@ class URLRequest extends Model {
 
     protected $table = 'url_requests';
 
-    public  function next(){
-        //Get next record
-        $id = ($this->id += 1);
-        return URLRequest::where('id', '=', $id)->first();
-    }
-
-    public function previous(){
-        //Get previous record
-        $id = ($this->id -= 1);
-        return URLRequest::where('id', '=', $id)->first();
-    }
 }

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Option;
+use App\System\FileManagerWrapper;
+use App\System\MPlayerWrapper;
 use App\System\Utilities;
 use App\URLRequest;
 use Illuminate\Foundation\Bus\DispatchesJobs;
@@ -29,6 +31,7 @@ class RequestController extends BaseController
      *  @return array
      */
     public function getRequestedURLs() {
+        //TODO: Remove .mp3 off the end of the records to make it look better.
         return URLRequest::all()->toArray();
     }
 
@@ -37,26 +40,29 @@ class RequestController extends BaseController
      * @return array
      */
     public function getShuffle() {
+
         /** @var Option $shuffle */
         $shuffle = Option::where('name', 'shuffle')->first();
-        if ($shuffle) {
+        if ($shuffle) { //Shuffle is true return the value back to the front-end.
             return [
                 'state' => $shuffle->value
             ];
-        } else {
-            return [
-                'state' => 'false'
-            ];
         }
+
+        //Returns the state as false.
+        return [
+            'state' => 'false'
+        ];
+
     }
 
     /**
      * Sets shuffle mode.
-     * @return array
      */
     public function setShuffle() {
-        //Check to see if we have shuffle in the Options table.
+
         /** @var Option $shuffle */
+        //Check to see if we have shuffle in the Options table.
         $shuffle = Option::where('name', 'shuffle')->first();
         if (is_null($shuffle)) {
             $newShuffle = new Option();
@@ -68,6 +74,7 @@ class RequestController extends BaseController
             $shuffle->value = ($shuffle->value = !$shuffle->value);
             $shuffle->save();
         }
+
     }
 
     /**
@@ -78,10 +85,12 @@ class RequestController extends BaseController
      */
     public function addRequest(Request $request) {
 
-        $utils = new Utilities();
+        //Create a Utilities class so we can use the needed functions on it.
+        $utilities = Utilities::getInstance();
+        //Get the requestedURL from the API request.
         $requestedURL = $request->get('requestedURL');
 
-        if (!$utils->validURL($requestedURL)) {
+        if (!$utilities->validURL($requestedURL)) { //Check to see if the requestedURL is a valid URL
             return [
                 'type' => 'Error',
                 'content' => 'The requested URL is not a URL please try again.'
@@ -90,15 +99,15 @@ class RequestController extends BaseController
 
         /** @var URLRequest $existingRecord */
         $existingRecord = URLRequest::all()->where('status', 'Requested')->where('url', $requestedURL);
-        if (count($existingRecord)) {
+        if (count($existingRecord)) { //check to see if there is a record with that URL in the queue.
             return [
                 'type' => 'Error',
                 'content' => "$requestedURL is all ready in the queue."
             ];
         }
         try {
-            $fileName = $this->downloadFile($requestedURL);
-        } catch (\Exception $e) {
+            $fileName = $this->downloadFile($requestedURL); //Download the file using the requestedURL.
+        } catch (\Exception $e) { //Catch any errors from the downloadFile function.
             return [
                 'type' => 'Error',
                 'content' => $e
@@ -119,60 +128,84 @@ class RequestController extends BaseController
      */
     private function downloadFile($url) {
 
-        /** @var URLRequest $record */
-        $record = new URLRequest();
-        $record->url = $url;
-        $record->status = 'Requested';
+        //Use the FileManagerWrapper to download the file and add a new record to the database.
+        $FileManager = FileManagerWrapper::getInstance();
+        return $FileManager->downloadFile($url, true);
 
-        exec('cd /Stream; sudo scdl -l ' . $url);
-        $getSongName = exec('cd /Stream && ls -t1 |  head -n 1');
+    }
 
-        $record->fileName = $getSongName;
-        $record->save();
+    /**
+     * Check to see if there is a difference between the server and the front-end.
+     * @param Request $request
+     * @return array
+     */
+    public function isQueueDifferent(Request $request) {
 
-        return $getSongName;
+        //Get the JS queue array.
+        $queue = $request->get('queue');
+
+        //Check to see if the user has submitted an array.
+        if (empty($queue)) {
+            return [
+                'type' => 'Error',
+                'content' => "Passed array is empty!"
+            ];
+        }
+
+        //Get the instance of MPlayerWrapper so we can call methods on it.
+        $MPlayer = MPlayerWrapper::getInstance();
+        if ($MPlayer->isTableDifferentFromArray($queue)) { //Check to see if there is a difference between the table and the front-end.
+            return [
+                'type' => 'Success',
+                'content' => "There is a difference between the arrays.",
+                'boolean' => 'true'
+            ];
+        }
+
+        //Return the findings.
+        return [
+            'type' => 'Success',
+            'content' => "No difference between the arrays.",
+            'boolean' => 'false'
+        ];
 
     }
 
     /**
      * Plays the file with the Filename it also updates the database with the status.
      * @param Request $request
-     * @return string
      */
     public function playFile(Request $request) {
 
+        //Get the fileName from the API request.
         $fileName = $request->get('fileName');
 
-        $output = $this->playFromFileName($fileName);
-
-        return "<pre>$output</pre>";
+        //Get the instance of MPlayerWrapper so we can call methods on it.
+        $MPlayer = MPlayerWrapper::getInstance();
+        $MPlayer->playFile($fileName); //Play the specified file from the fileName data.
 
     }
 
     /**
      * Skip to the next file in the queue.
-     *
-     * @return \Exception|string
      */
     public function skipToNext() {
-        /** @var URLRequest $playing */
-        $playing = $this->getPlaying();
-        /** @var URLRequest $next */
-        $next = $playing->next();
-        $this->playFromFileName($next->fileName);
+
+        //Get the instance of MPlayerWrapper so we can call methods on it.
+        $MPlayer = MPlayerWrapper::getInstance();
+        $MPlayer->skipToNextFile(); //Get and set the next record to play.
+
     }
 
     /**
      * Skip to the previous file in the queue.
-     *
-     * @return \Exception|string
      */
     public function skipToPrevious() {
-        /** @var URLRequest $playing */
-        $playing = $this->getPlaying();
-        /** @var URLRequest $next */
-        $previous = $playing->previous();
-        $this->playFromFileName($previous->fileName);
+
+        //Get the instance of MPlayerWrapper so we can call methods on it.
+        $MPlayer = MPlayerWrapper::getInstance();
+        $MPlayer->skipToPreviousFile(); //Get and set the previous record to play.
+
     }
 
     /**
@@ -182,22 +215,27 @@ class RequestController extends BaseController
      */
     public function clearQueue(Request $request) {
 
+        //Get the fileName from the API request.
         $fileName = $request->get('fileName');
-        $this->stop($fileName);
 
-        if (count(URLRequest::all()) > 0) {
-            URLRequest::truncate();
-            shell_exec('sudo rm -R /Stream && sudo mkdir /Stream');
+        //Get the instance of MPlayerWrapper so we can call methods on it.
+        $MPlayer = MPlayerWrapper::getInstance();
+        $MPlayer->stopFile($fileName);
+
+        //Get the instance of FileManagerWrapper so we can call methods on it.
+        $FileManager = FileManagerWrapper::getInstance();
+        if ($FileManager->clearQueue()) { //Check to see if there is any records in the queue and delete them.
             return [
                 'type' => 'Success',
                 'content' => 'Cleared the queue successfully.'
             ];
-        } else {
-            return [
-                'type' => 'Warning',
-                'content' => 'There is nothing in the queue to clear.'
-            ];
         }
+
+        //There is no records in the database to delete / update.
+        return [
+            'type' => 'Warning',
+            'content' => 'There is nothing in the queue to clear.'
+        ];
 
     }
 
@@ -208,10 +246,12 @@ class RequestController extends BaseController
      */
     public function removeFile(Request $request) {
 
+        //Get the fileName from the API request.
         $fileName = $request->get('fileName');
-        $record = URLRequest::where('fileName', $fileName)->first();
-        shell_exec('sudo rm /Stream/"' . $fileName . '"');
-        $record->delete();
+
+        //Get the FileManagerWrapper instance so we can call functions on it.
+        $FileManager = FileManagerWrapper::getInstance();
+        $FileManager->removeFile($fileName); //Remove the file from the database and also remove it from the /Stream directory.
 
         return [
             'type' => 'Success',
@@ -222,29 +262,18 @@ class RequestController extends BaseController
 
     public function stopFile(Request $request) {
 
+        //Get the fileName from the API request.
         $fileName = $request->get('fileName');
 
-        $this->stop($fileName);
+        //Get the MPlayerWrapper instance so we can call functions on it.
+        $MPlayer = MPlayerWrapper::getInstance();
+        $MPlayer->stopFile($fileName); //Stop the file that is currently playing.
 
         return [
             'type' => 'Success',
             'content' => 'Stopped ' . $fileName . ' Successfully'
-        ];
+        ]; //Return the fileName to the front end and display it in a notification form.
 
-    }
-
-    /**
-     * Stops the playback from MPlayer it also updates the record in the Database.
-     * @param $fileName
-     */
-    private function stop($fileName) {
-        $this->unsetPaused();
-        exec('sudo echo "quit" > /tmp/control');
-
-        /** @var URLRequest $record */
-        $record = URLRequest::where('fileName', $fileName)->first();
-        $record->status = 'Played';
-        $record->save();
     }
 
     /**
@@ -253,30 +282,14 @@ class RequestController extends BaseController
      * @return string
      */
     public function setPaused(Request $request) {
+
+        //Get the fileName from the API request.
         $fileName = $request->get('fileName');
-        exec('sudo echo "pause" > /tmp/control');
-        /** @var URLRequest $record */
-        $record = URLRequest::where('fileName', $fileName)->first();
-        if ($record->status == 'Playing') {
-            $record->status = 'Paused';
-        } else {
-            $record->status = 'Playing';
-        }
-        $record->save();
 
-        return $record->status;
-    }
+        //Get the MPlayerWrapper instance so we can call functions on it.
+        $MPlayer = MPlayerWrapper::getInstance();
+        return $MPlayer->setPaused($fileName); //Return the status of the record after toggling the paused state.
 
-    /**
-     * Unsets the paused record in the database.
-     */
-    public function unsetPaused() {
-        /** @var URLRequest $record */
-        $record = URLRequest::where('status', 'Paused')->first();
-        if (count($record) > 0) {
-            $record->status = 'Played';
-            $record->save();
-        }
     }
 
     /**
@@ -284,12 +297,14 @@ class RequestController extends BaseController
      * @return mixed
      */
     public function isPaused() {
-        $record = URLRequest::where('status', 'Paused')->first();
-        if (!empty($record)) {
+
+        //Get the MPlayerWrapper instance so we can call functions on it.
+        $MPlayer = MPlayerWrapper::getInstance();
+        if ($MPlayer->isPaused()) {//Check to see if the record is paused.
             return 'true';
-        } else {
-            return 'false';
         }
+        return 'false'; //Return false if there are no paused records.
+
     }
 
     /**
@@ -297,67 +312,48 @@ class RequestController extends BaseController
      * @return string
      */
     public function getVolume() {
-        //Change this from PCM to Master or what ever amixer defines. PCM is the Pi's default this is why I am using it!
-        $output = shell_exec("sudo amixer get PCM | awk '$0~/%/{print $4}' | tr -d '[]%';");
-        return "$output";
+
+        //Get the MPlayerWrapper instance so we can call functions on it.
+        $MPlayer = MPlayerWrapper::getInstance();
+        return $MPlayer->getVolume(); //Return the value of the volume on the hardware.
+
     }
 
     /**
      * Sets the volume for the amixer output.
      * Returns the shells output for debugging.
      * @param Request $request
-     * @return string
      */
     public function setVolume(Request $request) {
 
+        //Get the volume from the API request.
         $volume = $request->get('volume');
-        //Change this from PCM to Master or what ever amixer defines. PCM is the Pi's default this is why I am using it!
-        $output = shell_exec("sudo amixer --quiet set PCM $volume%");
 
-        return "<pre>$output</pre>";
+        //Get the instance of MPlayerWrapper so we can call methods on it.
+        $MPlayer = MPlayerWrapper::getInstance();
+        $MPlayer->setVolume($volume); //Set the volume of the hardware using the MPlayer Wrapper.
 
     }
 
     /**
-     * Plays file from the filename!
-     * @param $fileName
-     * @return string
+     * Resets all the variables in the MPlayer Wrapper and stops all the playback.
+     * @return bool
      */
-    private function playFromFileName($fileName) {
+    public function resetEnvironment() {
 
-        /** @var URLRequest $alreadyPlaying */
-        $alreadyPlaying = URLRequest::where('status', 'Playing')->first();
-        if ($alreadyPlaying) {
-            //Allow user to play any file in the queue at any time!
-            $this->stop($alreadyPlaying->fileName);
-        }
+        //Get the instance of MPlayerWrapper so we can call methods on it.
+        $MPlayer = MPlayerWrapper::getInstance();
+        $MPlayer->reset(); //Reset all the records and the methods that are on the records.
 
-        /** @var URLRequest $record */
-        $record = URLRequest::where('fileName', $fileName)->first();
-        if ($record) {
-            $record->status = 'Playing';
-            $record->save();
-        }
+        return true;
 
-        //Creates the fifo file for mplayer to read!
-        if (!file_exists('/tmp/control')) {
-            exec('sudo mkfifo /tmp/control');
-            exec('sudo chmod 777 /tmp/control');
-        }
+    }
 
-        $output = shell_exec('sudo mplayer -input file=/tmp/control /Stream/"' . $fileName .'"');
-
-        if ($record) {
-            $record->status = 'Played';
-            $record->save();
-        }
-
-        /** @var Option $shuffle */
-        $shuffle = Option::where('name', 'shuffle')->first();
-        if ($shuffle->value) {
-            $nextRecord = URLRequest::all()->random();
-            $this->playFromFileName($nextRecord->fileName);
-        }
-        return $output;
+    /**
+     * Simple function to show the PHP Info to developers.
+     */
+    public function phpInfo() {
+        phpinfo(); //Show the PHP info.
+        die();
     }
 }

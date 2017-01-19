@@ -34,6 +34,8 @@ Route::get('/stopFile', 'RequestController@stopFile');
 Route::get('/clearQueue', 'RequestController@clearQueue');
 Route::get('/removeFile', 'RequestController@removeFile');
 
+Route::get('/isQueueDifferent', 'RequestController@isQueueDifferent');
+
 //Adds the requested URL to the database and also downloads the file.
 Route::post('/addRequest', 'RequestController@addRequest');
 
@@ -45,3 +47,9 @@ Route::put('/skipToPrevious', 'RequestController@skipToPrevious');
 //Changes the volume on the driver on the server.
 Route::post('/setVolume', 'RequestController@setVolume');
 Route::get('/getVolume', 'RequestController@getVolume');
+
+//Resets all PHP and the Database back to default.
+Route::get('/resetEnvironment', 'RequestController@resetEnvironment');
+
+//Shows the phpinfo for developer usage.
+Route::get('/phpInfo', 'RequestController@phpInfo');

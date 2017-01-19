@@ -52,8 +52,10 @@
 
 			</div>
 		</div>
+		<div class="btn btn-danger" id="reset">Reset Environment</div>
 	</div>
-</div>
+  </div>
+
 
   <script src='./js/jquery.min.js'></script>
   <script src="./js/app.js"></script>
