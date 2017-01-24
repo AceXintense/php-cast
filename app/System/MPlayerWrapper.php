@@ -20,6 +20,7 @@ class MPlayerWrapper {
     private static $playThroughDirection;
     private $stopping;
     private $table;
+    private $extention = '.mp3';
 
     /**
      * Singleton class.
@@ -393,6 +394,10 @@ class MPlayerWrapper {
      * @return string
      */
     public function setPaused($fileName) {
+
+        if (!strpos($fileName, $this->extention)) {
+            $fileName = $fileName . $this->extention;
+        }
 
         //Write to the named pipe 'pause' which will command MPlayer to pause playback.
         //TODO: Remove /tmp/control and replace it with a global value in the config too!
