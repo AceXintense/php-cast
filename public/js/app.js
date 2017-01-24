@@ -12,7 +12,8 @@ var difference = false;
 
 var previousValues = {
     'volume': 0,
-    'queue': []
+    'queue': [],
+    'playing': ''
 };
 
 var spinner =
@@ -26,7 +27,7 @@ function getPlaying() {
         url: "/api/getPlaying",
         type: "GET",
         success: function(data) {
-            console.log(data);
+            previousValues.playing = data;
             $('#playing').text(data);
         }
     });
@@ -156,7 +157,7 @@ $('#pause').click(function () {
     $.ajax({
         url: "/api/setPaused",
         data: {
-          fileName: $('#getPlaying').text()
+          fileName: previousValues.playing
         },
         type: "POST",
         success: function () {
