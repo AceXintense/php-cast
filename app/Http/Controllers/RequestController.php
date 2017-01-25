@@ -26,6 +26,10 @@ class RequestController extends BaseController
 
         /** @var URLRequest $playing */
         $playing = URLRequest::where('status', 'Playing')->orWhere('status', 'Paused')->first();
+        if (empty($playing)) {
+            return 'No song is currently playing.';
+        }
+
         //Remove the .mp3 extension from the filename.
         return Utilities::getInstance()->removeExtension($playing->fileName);
 
