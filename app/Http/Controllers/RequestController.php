@@ -279,6 +279,9 @@ class RequestController extends BaseController
         //Get the fileName from the API request.
         $fileName = $request->get('fileName');
 
+        $MPlayer = MPlayerWrapper::getInstance();
+        $MPlayer->stopFile($fileName);
+
         //Get the FileManagerWrapper instance so we can call functions on it.
         $FileManager = FileManagerWrapper::getInstance();
         $FileManager->removeFile($fileName); //Remove the file from the database and also remove it from the /Stream directory.

@@ -1,448 +1,363 @@
-var open = false;
-var $messageContainer = $('.message');
-var $messageType = $('#type');
-var $messageContent = $('#content');
-var $messageIcon = $('.icon-message');
+angular.module('PHPCast', ['ngMaterial', 'ngMessages'])
+    .config(function($mdThemingProvider) {
+        $mdThemingProvider.theme('default')
+            .primaryPalette('green')
+            .accentPalette('grey', {'default': '50'})
+            .warnPalette('red', {'default': '700'});
 
-var playThough = false;
-var playThoughDirection = 'down';
-var shuffle = false;
-var run = false;
-var difference = false;
+        $mdThemingProvider.theme('playlist')
+            .primaryPalette('grey', {'default': '50'})
+            .accentPalette('green', {'default': '500'})
+            .warnPalette('red', {'default': '700'})
+    })
+    .controller('PHPCastController', ['$scope', '$http', function ($scope, $http) {
 
-var previousValues = {
-    'volume': 0,
-    'queue': [],
-    'playing': ''
-};
+        $scope.mode = 'shuffle';
+        $scope.volume = 0;
+        $scope.errors = [];
+        $scope.songPaused = 'false';
+        $scope.playThroughDirection = 'down';
+        $scope.currentlyPlaying = '';
+        $scope.queueItems = [];
 
-var spinner =
-    '<div class="spinner">' +
-        '<div class="double-bounce1"></div>' +
-        '<div class="double-bounce2"></div>' +
-    '</div>';
+        $scope.closeError = function (id) {
+            $scope.errors.splice(id, 1);
+        };
 
-function getPlaying() {
-    $.ajax({
-        url: "/api/getPlaying",
-        type: "GET",
-        success: function(data) {
-            previousValues.playing = data;
-            $('#playing').text(data);
-        }
-    });
-}
+        $scope.closeAllErrors = function () {
+            $scope.errors = [];
+        };
 
-function isQueueDifferent() {
-    $.ajax({
-        url: "/api/isQueueDifferent",
-        type: "GET",
-        data: {
-            'queue': previousValues.queue
-        },
-        success: function (data) {
-            if (data['boolean'] == 'true') {
-                difference = true;
+        $scope.toggleModes = function () {
+            $http({
+                method: 'POST',
+                url: '/api/toggleShuffle',
+                data: {
+                }
+            }).then(
+                function successCallback(response) {
+                    $scope.getShuffleMode();
+                },
+                function errorCallback(response) {
+                    console.log(response);
+                }
+            )
+        };
+
+        $scope.toggleMute = function () {
+            if ($scope.volume == 0) {
+                $scope.volume = 100;
             } else {
-                difference = false;
+                $scope.volume = 0;
             }
-        }
-    });
-}
+        };
 
-/*
- * All the Get API calls.
- */
-function getAPICalls() {
-    getPlaying();
-    getShuffle();
-    getPlayThrough();
-    getPlayThroughDirection();
-    getVolume();
-}
-
-var refresh = function () {
-
-    getAPICalls();
-
-    if (run) {
-        isQueueDifferent();
-    }
-
-    if (difference || !run) {
-        run = true;
-        $.ajax({
-            url: "/api/getRequestedURLs",
-            type: "GET",
-            success: function (data) {
-                previousValues.queue = data;
-                $(".queue").empty();
-                $.each(data, function (i, item) {
-                    if (item.status == 'Playing' || item.status == 'Paused') {
-                        $(".queue").append(
-                            '<div class="record row ' + item.status + '">' +
-                            '<div class="col-xs-1"></div>' +
-                            '<p class="col-xs-8">' + item.fileName + '</p>' +
-                            '<button class="btn btn-default col-xs-2 stop-file"><i class="fa fa-stop" aria-hidden="true"></i></button>' +
-                            '</div>'
-                        );
-                    } else {
-                        $(".queue").append(
-                            '<div class="record row ' + item.status + '">' +
-                            '<button class="btn btn-danger col-xs-2 col-xs-offset-1 btn-outline delete-track"><i class="fa fa-times" aria-hidden="true"></i></button>' +
-                            '<p class="col-xs-6">' + item.fileName + '</p>' +
-                            '<button class="btn btn-default col-xs-2 play-file"><i class="fa fa-play" aria-hidden="true"></i></button>' +
-                            '</div>'
-                        );
-                    }
-                });
-            }
+        $scope.$watch('volume', function () {
+            $http({
+                method: 'POST',
+                url: '/api/setVolume',
+                data: {
+                    volume: $scope.volume
+                }
+            }).then(
+                function successCallback(response) {
+                    //Success!
+                },
+                function errorCallback(response) {
+                    console.log(response);
+                }
+            )
         });
-    }
 
+        $scope.toggleSettings = function () {
+            $scope.settings = !$scope.settings;
+        };
 
-    enabledButtons();
-
-    isPaused();
-
-};
-
-refresh();
-
-function enabledButtons() {
-    if (shuffle) {
-        $('#play-through').attr('disabled', 'disabled');
-        $('#play-direction').hide();
-    } else if (playThough) {
-        $('#shuffle').attr('disabled', 'disabled');
-        $('#play-direction').show();
-    } else {
-        $('#play-direction').hide();
-        $('#play-through').removeAttr('disabled');
-        $('#shuffle').removeAttr('disabled');
-    }
-}
-
-function isPaused() {
-    $.ajax({
-        url: "/api/isPaused",
-        type: "GET",
-        success: function (data) {
-            if (data == 'false') {
-                $('#pause').removeClass('btn-danger').addClass('btn-default');
-                $('#previous').removeAttr('disabled');
-                $('#next').removeAttr('disabled');
-                return false;
-            } else {
-                $('#pause').removeClass('btn-default').addClass('btn-danger');
-                $('#previous').attr('disabled', 'disabled');
-                $('#next').attr('disabled', 'disabled');
-                return true;
-            }
-        }
-    });
-}
-
-$('#previous').click(function () {
-    $.ajax({
-        url: "/api/skipToPrevious",
-        type: "PUT",
-        success: function () {
-            refresh();
-        }
-    });
-});
-
-$('#pause').click(function () {
-    $.ajax({
-        url: "/api/setPaused",
-        data: {
-          fileName: previousValues.playing
-        },
-        type: "POST",
-        success: function () {
-            isPaused();
-        }
-    });
-});
-
-$('#next').click(function () {
-    $.ajax({
-        url: "/api/skipToNext",
-        type: "PUT",
-        success: function () {
-            refresh()
-        }
-    });
-});
-
-//noinspection JSJQueryEfficiency
-$('body').on("click", ".delete-track",function (){
-    var fileName = $(this).next().text();
-    var $button = $(this).append(spinner);
-    $(this).find('i').remove();
-    $(this).attr('disabled', 'disabled');
-    $.ajax({
-        url: "/api/removeFile",
-        data: {
-            fileName: fileName
-        },
-        type: "GET",
-        success: function(data) {
-            $button.empty();
-            $(this).removeAttr('disabled');
-            messageUpdate(data);
-        }
-    });
-});
-
-//noinspection JSJQueryEfficiency
-$('body').on("click", ".play-file",function (){
-    var fileName = $(this).prev().text();
-    $(this).append(spinner);
-    $(this).find('i').remove();
-    $(this).attr('disabled', 'disabled');
-    $.ajax({
-        url: "/api/playFile",
-        data: {
-            fileName: fileName
-        },
-        type: "POST"
-    });
-});
-
-//noinspection JSJQueryEfficiency
-$('body').on("click", ".stop-file",function (){
-    var fileName = $(this).prev().text();
-    var $button = $(this).append(spinner);
-    $(this).find('i').remove();
-    $(this).attr('disabled', 'disabled');
-    $.ajax({
-        url: "/api/stopFile",
-        data: {
-            fileName: fileName
-        },
-        type: "GET",
-        success: function(data) {
-            $button.empty();
-            $(this).removeAttr('disabled');
-            messageUpdate(data);
-        }
-    });
-});
-
-$('#clear-queue').click(function () {
-    $(this).attr('disabled', 'disabled');
-    $.ajax({
-        url: "/api/clearQueue",
-        data: {
-            fileName: $('#getPlaying').text()
-        },
-        type: "GET",
-        success: function(data) {
-            $(this).removeAttr('disabled');
-            $('#getPlaying').text(' Nothing is getPlaying.. ');
-            messageUpdate(data);
-        }
-    });
-});
-
-$('#close').click(function (){
-    $messageContainer.removeClass('animated slideInLeft');
-    $messageContainer.hide();
-});
-
-$('#more').click(function (){
-    open = !open;
-    if(open) {
-        $messageContent.css('white-space', 'normal');
-        $(this).text('Show Less');
-    } else {
-        $messageContent.css('white-space', 'nowrap');
-        $(this).text('Show More');
-    }
-});
-
-$('#volume').change(function() {
-    $.ajax({
-        url: "/api/setVolume",
-        data: {
-          volume: $('#volume').val()
-        },
-        type: "POST",
-        success: function() {
-            $('#volume-text').text($('#volume').val() + '%');
-            getShuffle();
-        }
-    });
-});
-
-/**
- * Gets the volume on the server and applies it to the #volume element.
- */
-function getVolume() {
-    $.ajax({
-        url: "/api/getVolume",
-        type: "GET",
-        success: function(data) {
-            var newVolume = parseInt(data);
-            if (newVolume != previousValues.volume) {
-                $('#volume').val(newVolume);
-                $('#volume-text').text(newVolume + '%');
-            }
-            previousValues.volume = parseInt(data);
-        }
-    });
-}
-
-function toggleDirection(data) {
-    if (data == 'up') {
-        $('#play-direction i').removeClass('fa-long-arrow-down');
-        $('#play-direction i').addClass('fa-long-arrow-up');
-        playThoughDirection = 'down';
-    } else {
-        $('#play-direction i').addClass('fa-long-arrow-down');
-        $('#play-direction i').removeClass('fa-long-arrow-up');
-        playThoughDirection = 'up';
-    }
-}
-
-function getPlayThroughDirection() {
-    $.ajax({
-        url: "/api/getPlayThroughDirection",
-        type: "GET",
-        success: function(data) {
-            toggleDirection(data);
-        }
-    });
-}
-
-function getPlayThrough() {
-    $.ajax({
-        url: "/api/getPlayThrough",
-        type: "GET",
-        success: function(data) {
-            if (data == 'true') {
-                $('#play-through').removeClass('btn-danger').addClass('btn-success');
-                playThough = true;
-            } else {
-                $('#play-through').removeClass('btn-success').addClass('btn-danger');
-                playThough = false;
-            }
-        }
-    });
-}
-
-function getShuffle() {
-    $.ajax({
-        url: "/api/getShuffle",
-        type: "GET",
-        success: function(data) {
-            if (data == 'true') {
-                $('#shuffle').removeClass('btn-danger').addClass('btn-success');
-                if (!isPaused()) {
-                    $('#previous').attr('disabled', 'disabled');
-                    $('#next').attr('disabled', 'disabled');
+        $scope.getShuffleMode = function () {
+            $http({
+                method: 'GET',
+                url: '/api/getShuffle'
+            }).then(
+                function successCallback(response) {
+                    if (response.data == 'false') {
+                        $scope.mode = 'through';
+                    } else {
+                        $scope.mode = 'shuffle';
+                    }
+                },
+                function errorCallback(response) {
+                    console.log(response);
                 }
-                shuffle = true;
-            } else {
-                $('#shuffle').removeClass('btn-success').addClass('btn-danger');
-                if (!isPaused()) {
-                    $('#previous').removeAttr('disabled');
-                    $('#next').removeAttr('disabled');
+            )
+        };
+
+        $scope.getVolume = function () {
+            $http({
+                method: 'GET',
+                url: '/api/getVolume'
+            }).then(
+                function successCallback(response) {
+                    if ($scope.volume != response.data) {
+                        $scope.volume = parseInt(response.data);
+                    }
+                },
+                function errorCallback(response) {
+                    console.log(response);
                 }
-                shuffle = false;
-            }
-        }
-    });
-}
+            )
+        };
 
-$('#request-add').click(function (){
-    $(this).text('');
-    var $button = $(this).append(spinner);
-    $(this).attr('disabled', true);
-    $.ajax({
-        url: "/api/addRequest",
-        type: "POST",
-        data: {
-            requestedURL: $('#request-url').val()
-        },
-        success: function(data) {
-            $button.empty();
-            $button.text('Add Response');
-            $('#request-add').removeAttr('disabled');
-            $('#request-url').val('');
-            messageUpdate(data);
-        }
-    });
+        $scope.togglePlayThroughDirection = function () {
+            $http({
+                method: 'POST',
+                url: '/api/togglePlayThroughDirection'
+            }).then(
+                function successCallback(response) {
+                    $scope.getPlayThroughDirection();
+                },
+                function errorCallback(response) {
+                    console.log(response);
+                }
+            )
+        };
+
+        $scope.getPlayThroughDirection = function () {
+            $http({
+                method: 'GET',
+                url: '/api/getPlayThroughDirection'
+            }).then(
+                function successCallback(response) {
+                    $scope.playThroughDirection = response.data;
+                },
+                function errorCallback(response) {
+                    console.log(response);
+                }
+            )
+        };
+
+        $scope.clearQueue = function () {
+            $http({
+                method: 'POST',
+                url: '/api/clearQueue',
+                data: {
+                    fileName: $scope.currentlyPlaying + '.mp3'
+                }
+            }).then(
+                function successCallback(response) {
+                    if (response.data.type == 'Warning') {
+                        $scope.errors.push({
+                            title: 'Warning!',
+                            description: response.data.content
+                        });
+                    }
+                },
+                function errorCallback(response) {
+                    console.log(response);
+                }
+            )
+        };
+
+
+        $scope.stopPlaying = function (fileName) {
+            $http({
+                method: 'POST',
+                url: '/api/stopFile',
+                data: {
+                    fileName: fileName
+                }
+            }).then(
+                function successCallback(response) {
+                    //Success!
+                },
+                function errorCallback(response) {
+                    console.log(response);
+                }
+            )
+        };
+
+        $scope.isPaused = function () {
+            $http({
+                method: 'GET',
+                url: '/api/isPaused'
+            }).then(
+                function successCallback(response) {
+                    $scope.songPaused = response.data;
+                },
+                function errorCallback(response) {
+                    console.log(response);
+                }
+            )
+        };
+
+        $scope.skipToPrevious = function () {
+            $http({
+                method: 'PUT',
+                url: '/api/skipToPrevious'
+            }).then(
+                function successCallback() {
+                    $scope.refresh();
+                },
+                function errorCallback(response) {
+                    console.log(response);
+                }
+            )
+        };
+
+        $scope.skipToNext = function () {
+            $http({
+                method: 'PUT',
+                url: '/api/skipToNext'
+            }).then(
+                function successCallback() {
+                    $scope.refresh();
+                },
+                function errorCallback(response) {
+                    console.log(response);
+                }
+            )
+        };
+
+        $scope.addRequest = function () {
+            $scope.requesting = true;
+            $http({
+                method: 'POST',
+                url: '/api/addRequest',
+                data: {
+                    requestedURL: $scope.requestedURL
+                }
+            }).then(
+                function successCallback(response) {
+                    $scope.requesting = false;
+                    $scope.requestedURL = '';
+                    $scope.getQueue();
+                    if (response.data.type == 'Error') {
+                        $scope.errors.push({
+                            title: 'Error!',
+                            description: response.data.content
+                        });
+                    }
+                },
+                function errorCallback(response) {
+                    $scope.requesting = false;
+                }
+            )
+        };
+
+        $scope.removeSong = function (fileName) {
+            $http({
+                method: 'POST',
+                url: '/api/removeFile',
+                data: {
+                    fileName: fileName
+                }
+            }).then(
+                function successCallback(response) {
+                },
+                function errorCallback(response) {
+                    console.log(response);
+                }
+            )
+        };
+
+        $scope.pauseSong = function () {
+            $http({
+                method: 'POST',
+                url: '/api/setPaused',
+                data: {
+                    fileName: $scope.currentlyPlaying
+                }
+            }).then(
+                function successCallback(response) {
+                    $scope.isPaused();
+                },
+                function errorCallback(response) {
+                    console.log(response);
+                }
+            );
+        };
+
+        $scope.isQueueDifferent = function () {
+            $http({
+                method: 'POST',
+                url: '/api/isQueueDifferent',
+                data: {
+                    queue: $scope.queueItems
+                }
+            }).then(
+                function successCallback(response) {
+                    if (response.data.boolean == 'true') {
+                        $scope.getQueue();
+                    }
+                },
+                function errorCallback(response) {
+                    console.log(response);
+                }
+            );
+        };
+
+        $scope.getQueue = function () {
+            $http({
+                method: 'GET',
+                url: '/api/getRequestedURLs'
+            }).then(
+                function successCallback(response) {
+                    $scope.queueItems = response.data;
+                },
+                function errorCallback(response) {
+                    console.log(response);
+                }
+            );
+        };
+
+        $scope.getPlaying = function () {
+            $http({
+                method: 'GET',
+                url: '/api/getPlaying'
+            }).then(
+                function successCallback(response) {
+                    $scope.currentlyPlaying = response.data;
+                },
+                function errorCallback(response) {
+                    console.log(response);
+                }
+            );
+        };
+
+        $scope.playSong = function (fileName) {
+            $http({
+                method: 'POST',
+                url: '/api/playFile',
+                data: {
+                    fileName: fileName
+                }
+            }).then(
+                function successCallback(response) {
+                    $scope.refresh();
+                },
+                function errorCallback(response) {
+                    console.log(response);
+                }
+            );
+        };
+
+        $scope.getQueue();
+
+        $scope.refresh = function () {
+            $scope.isPaused();
+            $scope.getVolume();
+            $scope.isQueueDifferent();
+            $scope.getShuffleMode();
+            $scope.getPlayThroughDirection();
+            $scope.getPlaying();
+        };
+
+        setInterval(function(){
+            $scope.refresh();
+        }, 1000);
+        $scope.refresh();
+
+    }]);
+
+    angular.element(function() {
+        angular.bootstrap(document, ['PHPCast']);
 });
-
-$('#shuffle').click(function () {
-    $.ajax({
-        url: "/api/toggleShuffle",
-        type: "POST",
-        success: function() {
-            shuffle = !shuffle;
-            enabledButtons();
-        }
-    });
-});
-
-$('#play-through').click(function () {
-    $.ajax({
-        url: "/api/togglePlayThrough",
-        type: "POST",
-        success: function() {
-            playThough = !playThough;
-            enabledButtons();
-        }
-    });
-});
-
-$('#play-direction').click(function () {
-    $.ajax({
-        url: "/api/togglePlayThroughDirection",
-        type: "POST",
-        success: function () {
-            getPlayThroughDirection();
-            toggleDirection(playThoughDirection);
-        }
-    });
-});
-
-$('#reset').click(function () {
-    $.ajax({
-        url: "/api/resetEnvironment",
-        type: "GET",
-        success: function() {
-            refresh();
-        }
-
-    });
-});
-
-/**
- * Gives back the output from the API in a message on the front-end.
- * @param data
- */
-function messageUpdate(data) {
-    $messageIcon.removeClass('fa-exclamation-circle');
-    $messageIcon.removeClass('fa-a-exclamation-triangle');
-    $messageIcon.removeClass('fa-check');
-    if (data['type'] == 'Success') {
-        $messageIcon.addClass('fa-check');
-    }
-    if (data['type'] == 'Warning') {
-        $messageIcon.addClass('fa-exclamation-triangle');
-    }
-    if (data['type'] == 'Error') {
-        $messageIcon.addClass('fa-exclamation-circle');
-    }
-    $messageContainer.addClass('animated slideInLeft');
-    $messageContainer.show();
-    $messageType.text(data['type']);
-    $messageContent.text(data['content']);
-    refresh();
-}
-
-setInterval(refresh, 2000);

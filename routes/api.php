@@ -35,13 +35,13 @@ Route::post('/setPaused', 'RequestController@setPaused');
 
 //Plays the requested file.
 Route::post('/playFile', 'RequestController@playFile');
-Route::get('/stopFile', 'RequestController@stopFile');
+Route::post('/stopFile', 'RequestController@stopFile');
 
 //Handles removing of files from the database and the filesystem.
-Route::get('/clearQueue', 'RequestController@clearQueue');
-Route::get('/removeFile', 'RequestController@removeFile');
+Route::post('/clearQueue', 'RequestController@clearQueue');
+Route::post('/removeFile', 'RequestController@removeFile');
 
-Route::get('/isQueueDifferent', 'RequestController@isQueueDifferent');
+Route::post('/isQueueDifferent', 'RequestController@isQueueDifferent');
 
 //Adds the requested URL to the database and also downloads the file.
 Route::post('/addRequest', 'RequestController@addRequest');

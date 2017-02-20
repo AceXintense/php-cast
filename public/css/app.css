@@ -1,213 +1,91 @@
-@import url("https://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700");
+@import url("https://fonts.googleapis.com/css?family=Nunito:200,300,400,600,700,800,900");
 * {
-  font-family: 'Ubuntu', sans-serif;
-  outline: none !important;
-  box-shadow: none !important; }
-  *:focus {
-    outline: none !important;
-    box-shadow: none !important; }
+  font-family: 'Nunito', sans-serif; }
 
-h1 {
-  color: #f35626;
-  background-image: -webkit-linear-gradient(92deg, #f35626, #feab3a);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  -webkit-animation: hue 60s infinite linear; }
-
-@-webkit-keyframes hue {
-  from {
-    -webkit-filter: hue-rotate(0deg); }
-  to {
-    -webkit-filter: hue-rotate(-360deg); } }
-html, body {
-  background: #323232; }
+.md-button {
+  text-transform: none !important; }
+  .md-button span {
+    vertical-align: middle; }
 
 #title {
+  font-size: 86px;
+  font-weight: 100;
+  margin: 0;
   color: white;
-  font-size: 82px;
-  text-align: center; }
+  text-shadow: 3px 3px 6px black; }
 
-h1 {
-  margin-top: 0;
-  font-weight: 100; }
+.settings {
+  margin: 40px 0; }
 
-.control, .ui {
-  border-radius: 10px;
-  background-color: white;
-  overflow: hidden;
-  padding: 10px;
-  color: #323232;
-  margin-top: 10px; }
+html, body {
+  background: #263238; }
 
-.Playing {
-  background-color: #4CAF50;
+.card-media {
+  background-color: #999999; }
+
+.close-all-errors {
   color: white; }
-  .Playing:hover {
-    background-color: #499b4d !important; }
 
-.Paused {
-  background-color: #F9A825;
-  color: white; }
-  .Paused:hover {
-    background-color: #ffac25 !important; }
+@media (min-width: 0px) {
+  .error-icon {
+    font-size: 53px;
+    margin-right: 0;
+    line-height: 50px;
+    text-align: center; }
 
-.fa-check {
-  color: #4CAF50; }
+  .error-content {
+    text-align: center; } }
+.paused {
+  color: red !important; }
 
-.fa-exclamation-triangle {
-  color: #FBC02D; }
+.queue-filename {
+  margin: auto; }
 
-.fa-exclamation-circle {
-  color: #B71C1C; }
+@media (min-width: 960px) {
+  .error-icon {
+    font-size: 53px;
+    margin-right: 20px;
+    line-height: 50px;
+    text-align: center; }
 
-.message {
-  display: none;
-  background-color: white;
-  color: #323232;
-  border-radius: 10px;
-  margin-top: 10px;
-  padding: 10px; }
-  .message .icon-message {
-    font-size: 35px;
-    float: right;
-    margin: 3px 5px; }
-  .message p {
-    white-space: nowrap;
-    overflow: hidden !important;
-    text-overflow: ellipsis; }
-  .message #close {
-    float: right; }
-
-#reset {
-  margin-top: 10px;
-  margin-bottom: 10px; }
-
-#play-direction {
-  background-color: transparent; }
-
-.control .playback {
-  padding: 5px 0; }
-  .control .playback #clear-queue {
-    float: right; }
-.control .queue {
-  border: 1px solid #ccc;
-  border-radius: 5px;
+  .error-content {
+    text-align: left; } }
+.queue {
+  margin: 0 7px;
+  border-radius: 2px;
+  max-height: 270px;
   overflow: hidden;
-  overflow-y: auto;
-  max-height: 250px; }
-  .control .queue:empty {
-    border: 0; }
-  .control .queue .record {
-    border-top: 1px solid transparent;
-    border-bottom: 1px solid transparent;
-    text-align: center;
-    padding: 5px; }
-    .control .queue .record .delete-track {
-      float: left; }
-    .control .queue .record p {
-      margin: 0; }
-    .control .queue .record:not(:first-child):not(:last-child):hover {
-      border-color: #ccc; }
-    .control .queue .record:first-child:hover {
-      border-bottom: 1px solid #ccc; }
-    .control .queue .record:last-child:hover {
-      border-top: 1px solid #ccc; }
-    .control .queue .record:hover {
-      background-color: #e6e6e6; }
+  overflow-y: auto; }
+  .queue .Playing {
+    margin: 0;
+    background-color: #4CAF50;
+    color: white; }
+  .queue .Paused {
+    margin: 0;
+    background-color: #FF3D00;
+    color: white; }
+  .queue::-webkit-scrollbar {
+    display: none; }
 
-::-webkit-scrollbar-track {
-  border-radius: 5px;
-  background-color: transparent; }
-
-::-webkit-scrollbar {
-  width: 6px;
-  padding: 10px 0;
-  background-color: transparent; }
-
-::-webkit-scrollbar-thumb {
-  border-radius: 10px;
-  background-color: #3b4c54; }
-
-.btn-outline {
-  background-color: transparent;
-  color: inherit;
-  transition: all .5s; }
-
-.btn-primary.btn-outline {
-  color: #428bca; }
-
-.btn-success.btn-outline {
-  color: #5cb85c; }
-
-.btn-info.btn-outline {
-  color: #5bc0de; }
-
-.btn-warning.btn-outline {
-  color: #f0ad4e; }
-
-.btn-danger.btn-outline {
-  color: #d9534f; }
-
-.btn-primary.btn-outline:hover,
-.btn-success.btn-outline:hover,
-.btn-info.btn-outline:hover,
-.btn-warning.btn-outline:hover,
-.btn-danger.btn-outline:hover {
-  color: #fff; }
-
-input[type="range"] {
-  -webkit-appearance: none;
-  height: 10px;
-  background-color: #f0f0f0;
-  outline: none;
-  margin-bottom: 10px;
-  border-radius: 5px; }
-
-input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 30px;
-  height: 20px;
-  border-radius: 5px;
-  background: #333;
-  position: relative;
-  z-index: 3; }
-
-.spinner {
+.song-icon {
+  color: #4CAF50;
   text-align: center;
-  display: inline-block;
-  vertical-align: middle;
-  width: 15px;
-  height: 15px;
-  position: relative;
-  margin: 0; }
+  font-size: 48px;
+  padding: 20px 0; }
 
-.double-bounce1, .double-bounce2 {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background-color: #333;
-  opacity: 0.6;
-  position: absolute;
-  top: 0;
-  left: 0;
-  -webkit-animation: sk-bounce 2.0s infinite ease-in-out;
-  animation: sk-bounce 2.0s infinite ease-in-out; }
+.song-playing {
+  margin: 10px;
+  text-align: center;
+  font-size: 18px;
+  padding: 10px 0; }
 
-.double-bounce2 {
-  -webkit-animation-delay: -1.0s;
-  animation-delay: -1.0s; }
+.md-button {
+  padding: 0 10px; }
 
-@-webkit-keyframes sk-bounce {
-  0%, 100% {
-    -webkit-transform: scale(0); }
-  50% {
-    -webkit-transform: scale(1); } }
-@keyframes sk-bounce {
-  0%, 100% {
-    transform: scale(0);
-    -webkit-transform: scale(0); }
-  50% {
-    transform: scale(1);
-    -webkit-transform: scale(1); } }
+.md-button i {
+  vertical-align: middle; }
+
+.music-controls .md-button {
+  min-width: 0; }
 
 /*# sourceMappingURL=app.css.map */

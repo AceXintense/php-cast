@@ -51,7 +51,14 @@ class MPlayerWrapper {
      * Get the file that has the status of "Playing"
      */
     private function getPlayingFile() {
-        return URLRequest::where('status', 'Playing')->first();
+
+        try {
+            $file = URLRequest::where('status', 'Playing')->first();
+        } catch (\Exception $exception) {
+            throw new \Exception($exception);
+        }
+
+        return $file;
     }
 
     /**
@@ -144,7 +151,7 @@ class MPlayerWrapper {
      * Returns true if there is a file getPlaying.
      */
     private function isAlreadyPlaying() {
-        return (boolean) URLRequest::where('status', 'Playing')->first();
+        return (boolean) URLRequest::where('status', 'Playing')->orWhere('status', 'Paused')->first();
     }
 
     /**
@@ -235,10 +242,21 @@ class MPlayerWrapper {
      */
     public function stopFile($fileName) {
 
-        //Stop the MPlayer instance via the control named pipe.
-        exec('sudo echo "quit" > /tmp/control');
-        $this->stopping = true;
-        $this->updateFileRecord($fileName, 'Played'); //Update the file status to played in the database.
+        /** @var URLRequest $playingFile */
+        try {
+            $playingFile = $this->getPlayingFile();
+        } catch (\Exception $exception) {
+            die($exception);
+        }
+
+        if (!empty($playingFile->fileName)) {
+            $this->stopping = true;
+            $this->updateFileRecord($fileName, 'Played'); //Update the file status to played in the database.
+            //Stop the MPlayer instance via the control named pipe.
+            if ($playingFile->fileName == $fileName) {
+                exec('sudo echo "quit" > /tmp/control');
+            }
+        }
 
     }
 
