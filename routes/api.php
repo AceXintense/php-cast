@@ -57,5 +57,8 @@ Route::post('/setVolume', 'RequestController@setVolume');
 //Resets all PHP and the Database back to default.
 Route::get('/resetEnvironment', 'RequestController@resetEnvironment');
 
+//Toggles shuffling of the Queue and plays one song after another.
+Route::get('/getChartData', 'RequestController@getChartData');
+
 //Shows the phpinfo for developer usage.
 Route::get('/phpInfo', 'RequestController@phpInfo');

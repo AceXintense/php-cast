@@ -380,10 +380,33 @@ class RequestController extends BaseController
     }
 
     /**
+     * Gets the data needed for the chart.
+     * @return array
+     */
+    public function getChartData() {
+
+        $songs = URLRequest::all()->toArray();
+        foreach ($songs as $song) {
+            $songNames[] = $this->shortenSentence($song['fileName'], 10);
+            $plays[] = $song['times_played'];
+        }
+
+        return [
+            'songs' => $songNames,
+            'plays' => [$plays, $plays]
+        ];
+
+    }
+
+    /**
      * Simple function to show the PHP Info to developers.
      */
     public function phpInfo() {
         phpinfo(); //Show the PHP info.
         die();
+    }
+
+    private function shortenSentence($input, $length = 50) {
+        return strlen($input) > $length ? substr($input, 0, $length)."..." : $input;
     }
 }

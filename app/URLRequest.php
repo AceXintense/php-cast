@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string url
  * @property string status
  * @property string fileName
+ * @property integer times_played
  */
 class URLRequest extends Model {
 
