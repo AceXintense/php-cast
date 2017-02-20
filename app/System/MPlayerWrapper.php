@@ -65,13 +65,17 @@ class MPlayerWrapper {
      * Update the fileName and the status.
      * @param $fileName
      * @param $status
+     * @param bool $addToCounter
      */
-    private function updateFileRecord($fileName, $status) {
+    private function updateFileRecord($fileName, $status, $addToCounter = false) {
 
         /** @var URLRequest $record */
         $record = URLRequest::where('fileName', $fileName)->first();
 
         if ($record) {//Check to see if the record exists.
+            if ($addToCounter) {
+                $record->times_played ++;
+            }
             $record->status = $status;
             $record->save();
         }
@@ -193,7 +197,7 @@ class MPlayerWrapper {
             $this->stopPlayingFiles(); //Stop all playback from the MPlayer wrapper.
         }
 
-        $this->updateFileRecord($fileName, 'Playing'); //Update the file status to played in the database.
+        $this->updateFileRecord($fileName, 'Playing', true); //Update the file status to played in the database.
         //Play the specified fileName.
         //TODO: Simplify this command and also remove the /tmp/control and put it in the config. Same for the /Stream directory.
         shell_exec("sudo mplayer -input file=/tmp/control /Stream/\"$fileName\"");

@@ -15,6 +15,8 @@
 	<script src="/bower_components/angular-animate/angular-animate.min.js"></script>
 	<script src="/bower_components/angular-aria/angular-aria.min.js"></script>
 	<script src="/bower_components/angular-messages/angular-messages.min.js"></script>
+	<script src="/bower_components/chart.js/dist/Chart.min.js"></script>
+	<script src="/bower_components/angular-chart.js/angular-chart.js"></script>
 
 </head>
 
@@ -86,6 +88,21 @@
 								<md-progress-linear md-mode="indeterminate" ng-show="requesting"></md-progress-linear>
 							</md-input-container>
 							<md-button class="md-raised" ng-click="addRequest()">Add Request</md-button>
+						</md-card-content>
+					</md-card>
+
+					<md-card>
+						<md-card-title>
+							<md-card-title-text>
+								<span class="md-headline">Statistics</span>
+							</md-card-title-text>
+						</md-card-title>
+
+						<md-card-content>
+							<canvas id="base" class="chart-bar"
+									chart-data="chartPlayData" chart-labels="chartLabels" chart-colors="colors"
+									chart-dataset-override="datasetOverride" >
+							</canvas>
 						</md-card-content>
 					</md-card>
 				</div>

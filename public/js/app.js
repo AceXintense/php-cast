@@ -1,4 +1,4 @@
-angular.module('PHPCast', ['ngMaterial', 'ngMessages'])
+angular.module('PHPCast', ['ngMaterial', 'ngMessages', 'chart.js'])
     .config(function($mdThemingProvider) {
         $mdThemingProvider.theme('default')
             .primaryPalette('green')
@@ -10,6 +10,28 @@ angular.module('PHPCast', ['ngMaterial', 'ngMessages'])
             .accentPalette('green', {'default': '500'})
             .warnPalette('red', {'default': '700'})
     })
+    .config(function (ChartJsProvider) {
+        ChartJsProvider.setOptions({
+            scales: {
+                xAxes: [{
+                    display: true,
+                    scaleLabel: {
+                        display: true,
+                        labelString: 'Songs'
+                    },
+                    barPercentage: .9
+                }],
+                yAxes: [{
+                    display: true,
+                    ticks: {
+                        beginAtZero: true,
+                        steps: 1,
+                        stepValue: 1
+                    }
+                }]
+            },
+        });
+    })
     .controller('PHPCastController', ['$scope', '$http', function ($scope, $http) {
 
         $scope.mode = 'shuffle';
@@ -19,6 +41,26 @@ angular.module('PHPCast', ['ngMaterial', 'ngMessages'])
         $scope.playThroughDirection = 'down';
         $scope.currentlyPlaying = '';
         $scope.queueItems = [];
+
+        $scope.colors = ['#45b7cd', '#ff6384', '#ff8e72'];
+
+        $scope.chartLabels = [];
+        $scope.chartPlayData = [];
+        $scope.datasetOverride = [
+            {
+                label: "",
+                borderWidth: 1,
+                type: 'bar',
+                scaleBeginAtZero: true
+            },
+            {
+                label: "Line chart",
+                borderWidth: 3,
+                hoverBackgroundColor: "rgba(255,99,132,0.4)",
+                hoverBorderColor: "rgba(255,99,132,1)",
+                type: 'line'
+            }
+        ];
 
         $scope.closeError = function (id) {
             $scope.errors.splice(id, 1);
@@ -37,6 +79,22 @@ angular.module('PHPCast', ['ngMaterial', 'ngMessages'])
             }).then(
                 function successCallback(response) {
                     $scope.getShuffleMode();
+                },
+                function errorCallback(response) {
+                    console.log(response);
+                }
+            )
+        };
+
+        $scope.getChartData = function () {
+            $http({
+                method: 'GET',
+                url: '/api/getChartData'
+            }).then(
+                function successCallback(response) {
+                    console.log(response.data.plays);
+                    $scope.chartLabels = response.data.songs;
+                    $scope.chartPlayData = response.data.plays;
                 },
                 function errorCallback(response) {
                     console.log(response);
@@ -349,6 +407,7 @@ angular.module('PHPCast', ['ngMaterial', 'ngMessages'])
             $scope.getShuffleMode();
             $scope.getPlayThroughDirection();
             $scope.getPlaying();
+            $scope.getChartData();
         };
 
         setInterval(function(){
@@ -360,4 +419,4 @@ angular.module('PHPCast', ['ngMaterial', 'ngMessages'])
 
     angular.element(function() {
         angular.bootstrap(document, ['PHPCast']);
-});
+    });

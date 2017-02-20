@@ -18,6 +18,7 @@ class CreateURLRequestsTable extends Migration
             $table->string('url');
             $table->string('status');
             $table->string('fileName')->nullable('fileName');
+            $table->integer('times_played')->default(0);
             $table->timestamps();
         });
     }
