@@ -26,10 +26,11 @@ angular.module('PHPCast', ['ngMaterial', 'ngMessages', 'chart.js'])
                     ticks: {
                         beginAtZero: true,
                         steps: 1,
-                        stepValue: 1
+                        stepValue: 1,
+                        suggestedMax: 10
                     }
                 }]
-            },
+            }
         });
     })
     .controller('PHPCastController', ['$scope', '$http', function ($scope, $http) {
@@ -92,9 +93,14 @@ angular.module('PHPCast', ['ngMaterial', 'ngMessages', 'chart.js'])
                 url: '/api/getChartData'
             }).then(
                 function successCallback(response) {
-                    console.log(response.data.plays);
                     $scope.chartLabels = response.data.songs;
                     $scope.chartPlayData = response.data.plays;
+                    $scope.max = (Math.max.apply(Math, response.data.plays[0]) + 1);
+                    Chart.scaleService.updateScaleDefaults('linear', {
+                        ticks: {
+                            suggestedMax: $scope.max
+                        }
+                    });
                 },
                 function errorCallback(response) {
                     console.log(response);
