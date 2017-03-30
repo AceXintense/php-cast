@@ -33,7 +33,7 @@ angular.module('PHPCast', ['ngMaterial', 'ngMessages', 'chart.js'])
             }
         });
     })
-    .controller('PHPCastController', ['$scope', '$http', function ($scope, $http) {
+    .controller('PHPCastController', ['$scope', '$http', '$interval', function ($scope, $http, $interval) {
 
         $scope.mode = 'shuffle';
         $scope.volume = 0;
@@ -63,6 +63,10 @@ angular.module('PHPCast', ['ngMaterial', 'ngMessages', 'chart.js'])
             }
         ];
 
+        $interval(function(){
+            $scope.time = new Date().toLocaleTimeString('en-US');
+        }, 1000);
+
         $scope.closeError = function (id) {
             $scope.errors.splice(id, 1);
         };
@@ -84,7 +88,7 @@ angular.module('PHPCast', ['ngMaterial', 'ngMessages', 'chart.js'])
                 function errorCallback(response) {
                     console.log(response);
                 }
-            )
+            );
         };
 
         $scope.getChartData = function () {

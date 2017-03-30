@@ -56,6 +56,8 @@
 		</div>
 	</div>
 
+	<p id="time">@{{ time }}</p>
+
 	<div ng-show="!settings">
 		<div layout="row" layout-xs="column">
 			<div flex="80" flex-offset="10" layout-sm="column" layout-gt-sm="row" layout-align="space-between">
